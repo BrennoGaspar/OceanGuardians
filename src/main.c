@@ -1,5 +1,3 @@
-//oi
-
 /**
  * @file main.c
  * @author Prof. Dr. David Buzatto
