@@ -40,11 +40,4 @@ Desenvolver um jogo interativo que incentive boas práticas ambientais, mostrand
 
 ## 🔗 Links Importantes
 - 📌 [Trello do Projeto](https://trello.com/invite/b/68433d7121467f57c495b960/ATTIa8173ec74f200b713333c6041fff89e69F1A16B8/ocean-guardians-projeto-de-extensao-2)  
-- 💻 [Repositório no GitHub](https://github.com/BrennoGaspar/OceanGuardians.git)  
-
----
-
-## 🚀 Como Executar o Projeto
-1. Clone este repositório:  
-   ```bash
-   git clone https://github.com/BrennoGaspar/OceanGuardians.git
+- 💻 [Repositório no GitHub](https://github.com/BrennoGaspar/OceanGuardians.git)
