@@ -28,11 +28,7 @@
  *------------------------------------------*/
 const int PARADO = 0;
 const int RODANDO = 1;
-<<<<<<< Updated upstream
 int ESTADO = PARADO; 
-=======
-int ESTADO = PARADO;
->>>>>>> Stashed changes
 
 
 /*---------------------------------------------
@@ -51,6 +47,9 @@ typedef struct Jogador {
  * Global variables.
  *-------------------------------------------*/
 Jogador jogador;
+Texture2D background;
+Texture2D fire;
+Font tituloFont;
 
 /*---------------------------------------------
  * Function prototypes. 
@@ -64,7 +63,8 @@ void update( float delta );
  * @brief Draws the state of the game.
  */
 void draw( void );
-void AtualizarJogador(Jogador *jogador, int teclaEsquerda, int teclaDireita, int teclaCima, int teclaBaixo, float delta);
+void draw_menu(void);
+void draw_gameplay(void);
 
 void AtualizarJogador(Jogador *jogador, int teclaEsquerda, int teclaDireita, int teclaCima, int teclaBaixo, float delta);
 
@@ -76,31 +76,19 @@ int main( void ) {
     // antialiasing
     SetConfigFlags( FLAG_MSAA_4X_HINT );
 
-    // creates a new window 800 pixels wide and 450 pixels high
-    InitWindow( 800, 600, "Ocean Guardians: The game" );
+    // creates a new window 800 pixels wide and 600 pixels high
+    InitWindow( 800, 600, "Ocean Guardians - O Jogo" );
 
     // init audio device only if your game uses sounds
     //InitAudioDevice();
 
     // FPS: frames per second
-    SetTargetFPS( 60 );     
+    SetTargetFPS( 60 );
 
-    // you must load game resources here
-    // Correção: Use uma variável temporária do tipo Image
-    
-    
-    // Atribui a textura à struct Jogador
-    
-    // Agora que a textura foi criada, podemos descarregar a imagem da memória
-
-    // 2. Definir a posição inicial do sprite
-<<<<<<< Updated upstream
-    jogador.spriteX = 100;
-    jogador.spriteY = 100;
-=======
-    // jogador.spriteX = 100;
-    // jogador.spriteY = 100;
->>>>>>> Stashed changes
+    // Load all game resources here
+    background = LoadTexture( "resources/images/fundo.jpg" );
+    fire = LoadTexture( "resources/images/fire.png" );
+    tituloFont = LoadFont("resources/font/Asimovian-Regular.ttf");
 
     // game loop
     while ( !WindowShouldClose() ) {
@@ -108,11 +96,12 @@ int main( void ) {
         draw();
     }
 
-    // Unload the texture before closing
-    UnloadTexture(jogador.sprite);
-    
+    // Unload resources before closing
+    UnloadTexture(background);
+    UnloadFont(tituloFont);
+    UnloadTexture(fire);
+
     // close audio device only if your game uses sounds
-    //CloseAudioDevice();
     CloseWindow();
 
     return 0;
@@ -120,88 +109,90 @@ int main( void ) {
 }
 
 void update( float delta ) {
-    // Lógica para mover o jogador
-    if (IsKeyDown(KEY_D)) {
-        jogador.spriteX += 100 * delta;
+    if (ESTADO == PARADO) {
+
+        if (IsKeyPressed(KEY_SPACE)) {
+            ESTADO = RODANDO;
+        }
+
+    } else if (ESTADO == RODANDO) {
+        
+        // Lógica de movimentação do jogador no estado de jogo
+        if (IsKeyDown(KEY_D)) {
+            jogador.spriteX += 100 * delta;
+        }
+
     }
 }
 
 void draw( void ) {
 
-    Font titulo = LoadFont("resources/font/Asimovian-Regular.ttf");
-    Vector2 tituloPos = {GetScreenWidth()/2 - 260 , 100}; 
-    
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
     BeginDrawing();
-    
     ClearBackground( WHITE );
 
-<<<<<<< Updated upstream
-    //Tela Inicial do game
-    if(ESTADO == PARADO){
-        DrawTextEx(titulo, "Ocean Guardian", tituloPos , 100, 1, BLUE);
-        DrawRectangle(310,280, 200, 90, BLUE);
-        DrawText("INICIAR", GetScreenWidth()/2 - 50, 300, 30, GREEN);
-        DrawText("APERTE ESPAÇO",GetScreenWidth()/2 - 80, 330, 20, GREEN);
-        DrawText("Desenvolvido por estudantes do segundo semestre de ciencia da computacao", 10, 580,19,BLACK);
-        DrawText("Melhor", 30, GetScreenHeight()/2 - 20, 20,RED);
-        DrawText("Pontuacao", 30, GetScreenHeight()/2 - 5, 20, RED);
-        DrawText("Aperte Q para descartar o lixo", GetScreenWidth()/2 - 150 , 390,20, BLACK);
-        DrawText("Aperte E para pegar o lixo", GetScreenWidth()/2 - 150 , 410,20, BLACK);
-        DrawText("WASD para movimentacao", GetScreenWidth()/2 - 150 , 430,20, BLACK);
-
-=======
-    // Desenha o sprite do jogador
-    //DrawTexture(jogador.sprite, jogador.spriteX, jogador.spriteY, WHITE);
-
-    //DrawTextureEx( jogador.sprite, (Vector2){ (float)jogador.spriteX, (float)jogador.spriteY }, 0.23f, 0.2f, WHITE );
-    
-    //Tela Inicial do game
-    if(ESTADO == PARADO){
-        DrawTextEx(titulo, "Ocean Guardian", tituloPos , 100, 1, BLUE);
-        DrawRectangle(310,280, 200, 90, BLUE);
-        DrawText("INICIAR", GetScreenWidth()/2 - 50, 300, 30, GREEN);
-        DrawText("APERTE ESPAÇO",GetScreenWidth()/2 - 80, 330, 20, GREEN);
-        DrawText("Desenvolvido por estudantes do segundo semestre de ciencia da computacao", 10, 580,19,BLACK);
-        DrawText("Melhor", 30, GetScreenHeight()/2 - 20, 20,RED);
-        DrawText("Pontuacao", 30, GetScreenHeight()/2 - 5, 20, RED);
-        DrawText("Aperte Q para descartar o lixo", GetScreenWidth()/2 - 150 , 390,20, BLACK);
-        DrawText("Aperte E para pegar o lixo", GetScreenWidth()/2 - 150 , 410,20, BLACK);
-        DrawText("WASD para movimentacao", GetScreenWidth()/2 - 150 , 430,20, BLACK);
-
->>>>>>> Stashed changes
+    if(ESTADO == PARADO) {
+        draw_menu();
+    } else if (ESTADO == RODANDO) {
+        draw_gameplay();
     }
-
-
-    if(IsKeyPressed(KEY_SPACE)){
-        ESTADO = RODANDO;
-    }
-    // Desenha o sprite do jogador
-
-    //DrawTexture(jogador.sprite, jogador.spriteX, jogador.spriteY, WHITE);
-
-    //DrawTextureEx( jogador.sprite, (Vector2){ (float)jogador.spriteX, (float)jogador.spriteY }, 0.23f, 0.2f, WHITE );
-    
-    DrawFPS( 20, 20 );
 
     EndDrawing();
+
+}
+
+void draw_menu(void) {
+
+    // Fundo
+    Rectangle sourceRec = { 0.0f, 0.0f, (float)background.width, (float)background.height };
+    Rectangle destRec = { 0.0f, 0.0f, (float)GetScreenWidth(), (float)GetScreenHeight() };
+    Vector2 origin = { 0.0f, 0.0f };
+    Color transparentWhite = ColorAlpha(WHITE, 0.9f);
+    DrawTexturePro(background, sourceRec, destRec, origin, 0.0f, transparentWhite);
+
+    // Titulo e botao
+    Vector2 tituloPos = { GetScreenWidth() / 2 - MeasureTextEx(tituloFont, "Ocean Guardian", 100, 1).x / 2, 100 };
+    DrawTextEx(tituloFont, "Ocean Guardian", tituloPos, 100, 1, WHITE);
+    
+    DrawRectangle(310, 267, 180, 50, BLUE);
+    int iniciarTextWidth = MeasureText("INICIAR", 30);
+    DrawText("INICIAR", GetScreenWidth()/2 - iniciarTextWidth/2, 280, 30, WHITE);
+
+    // Textos secundarios
+    DrawRectangle( (GetScreenWidth() / 2 - 175), (GetScreenHeight() / 2 + 75), 370, 90, BLUE );
+    DrawText("Aperte Q para descartar o lixo", GetScreenWidth()/2 - 150 , 390, 20, WHITE);
+    DrawText("Aperte E para pegar o lixo", GetScreenWidth()/2 - 150 , 410, 20, WHITE);
+    DrawText("WASD para movimentacao", GetScreenWidth()/2 - 150 , 430, 20, WHITE);
+
+    Rectangle fireSourceRec = { 0, 0, (float)fire.width, (float)fire.height};
+    Rectangle fireDestRec = { 5, GetScreenHeight() / 2 - 110, 250, 190 };
+    Vector2 fireOrigin = { 0 , 0 };
+    DrawTexturePro(fire, fireSourceRec, fireDestRec, fireOrigin, 0, WHITE);
+    DrawText("Melhor", 75, GetScreenHeight()/2 - 20, 20, WHITE);
+    DrawText("Pontuacao:", 75, GetScreenHeight()/2 - 5, 20, WHITE);
+    DrawText("XXX", 105, GetScreenHeight()/2 + 20, 20, WHITE);
+
+    DrawText("Desenvolvido por estudantes do segundo semestre de ciencia da computacao", 10, 580, 19, BLACK);
+
+}
+
+void draw_gameplay(void) {
+    
+    
+
 }
 
 void AtualizarJogador(Jogador *jogador, int teclaEsquerda, int teclaDireita, int teclaCima, int teclaBaixo, float delta){
-        if ( IsKeyDown( teclaEsquerda ) ) {
-            jogador->pos.x -= jogador->vel * delta;
-        }
-
-        if ( IsKeyDown( teclaDireita ) ) {
-            jogador->pos.x += jogador->vel * delta;
-        }   
-
-        if ( jogador->pos.x < 0 ) {
-            jogador->pos.x = 0;
-        } else if ( jogador->pos.x + jogador->dim.x > GetScreenWidth() ) {
-            jogador->pos.x = GetScreenWidth() - jogador->dim.x;
-        }
+    if ( IsKeyDown( teclaEsquerda ) ) {
+        jogador->pos.x -= jogador->vel * delta;
     }
+
+    if ( IsKeyDown( teclaDireita ) ) {
+        jogador->pos.x += jogador->vel * delta;
+    }   
+
+    if ( jogador->pos.x < 0 ) {
+        jogador->pos.x = 0;
+    } else if ( jogador->pos.x + jogador->dim.x > GetScreenWidth() ) {
+        jogador->pos.x = GetScreenWidth() - jogador->dim.x;
+    }
+}
