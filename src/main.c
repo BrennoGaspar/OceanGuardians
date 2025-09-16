@@ -28,7 +28,11 @@
  *------------------------------------------*/
 const int PARADO = 0;
 const int RODANDO = 1;
+<<<<<<< Updated upstream
 int ESTADO = PARADO; 
+=======
+int ESTADO = PARADO;
+>>>>>>> Stashed changes
 
 
 /*---------------------------------------------
@@ -60,6 +64,7 @@ void update( float delta );
  * @brief Draws the state of the game.
  */
 void draw( void );
+void AtualizarJogador(Jogador *jogador, int teclaEsquerda, int teclaDireita, int teclaCima, int teclaBaixo, float delta);
 
 void AtualizarJogador(Jogador *jogador, int teclaEsquerda, int teclaDireita, int teclaCima, int teclaBaixo, float delta);
 
@@ -89,8 +94,13 @@ int main( void ) {
     // Agora que a textura foi criada, podemos descarregar a imagem da memória
 
     // 2. Definir a posição inicial do sprite
+<<<<<<< Updated upstream
     jogador.spriteX = 100;
     jogador.spriteY = 100;
+=======
+    // jogador.spriteX = 100;
+    // jogador.spriteY = 100;
+>>>>>>> Stashed changes
 
     // game loop
     while ( !WindowShouldClose() ) {
@@ -121,11 +131,15 @@ void draw( void ) {
     Font titulo = LoadFont("resources/font/Asimovian-Regular.ttf");
     Vector2 tituloPos = {GetScreenWidth()/2 - 260 , 100}; 
     
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
     BeginDrawing();
     
     ClearBackground( WHITE );
 
+<<<<<<< Updated upstream
     //Tela Inicial do game
     if(ESTADO == PARADO){
         DrawTextEx(titulo, "Ocean Guardian", tituloPos , 100, 1, BLUE);
@@ -139,6 +153,26 @@ void draw( void ) {
         DrawText("Aperte E para pegar o lixo", GetScreenWidth()/2 - 150 , 410,20, BLACK);
         DrawText("WASD para movimentacao", GetScreenWidth()/2 - 150 , 430,20, BLACK);
 
+=======
+    // Desenha o sprite do jogador
+    //DrawTexture(jogador.sprite, jogador.spriteX, jogador.spriteY, WHITE);
+
+    //DrawTextureEx( jogador.sprite, (Vector2){ (float)jogador.spriteX, (float)jogador.spriteY }, 0.23f, 0.2f, WHITE );
+    
+    //Tela Inicial do game
+    if(ESTADO == PARADO){
+        DrawTextEx(titulo, "Ocean Guardian", tituloPos , 100, 1, BLUE);
+        DrawRectangle(310,280, 200, 90, BLUE);
+        DrawText("INICIAR", GetScreenWidth()/2 - 50, 300, 30, GREEN);
+        DrawText("APERTE ESPAÇO",GetScreenWidth()/2 - 80, 330, 20, GREEN);
+        DrawText("Desenvolvido por estudantes do segundo semestre de ciencia da computacao", 10, 580,19,BLACK);
+        DrawText("Melhor", 30, GetScreenHeight()/2 - 20, 20,RED);
+        DrawText("Pontuacao", 30, GetScreenHeight()/2 - 5, 20, RED);
+        DrawText("Aperte Q para descartar o lixo", GetScreenWidth()/2 - 150 , 390,20, BLACK);
+        DrawText("Aperte E para pegar o lixo", GetScreenWidth()/2 - 150 , 410,20, BLACK);
+        DrawText("WASD para movimentacao", GetScreenWidth()/2 - 150 , 430,20, BLACK);
+
+>>>>>>> Stashed changes
     }
 
 
