@@ -111,8 +111,15 @@ int main( void ) {
 void update( float delta ) {
     if (ESTADO == PARADO) {
 
-        if (IsKeyPressed(KEY_SPACE)) {
-            ESTADO = RODANDO;
+        Rectangle iniciar = { 310, 267, 180, 50 };
+        bool isCollision = CheckCollisionPointRec( GetMousePosition(), iniciar );
+        
+        if( isCollision ){
+
+            if( IsMouseButtonPressed(MOUSE_LEFT_BUTTON) ){
+                ESTADO = RODANDO;
+            }
+
         }
 
     } else if (ESTADO == RODANDO) {
