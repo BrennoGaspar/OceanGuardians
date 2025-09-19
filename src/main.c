@@ -30,6 +30,9 @@ const int PARADO = 0;
 const int RODANDO = 1;
 int ESTADO = PARADO; 
 
+const int LIXO_WIDTH = 40;
+const int LIXO_HEIGHT = 40;
+
 
 /*---------------------------------------------
  * Custom types (enums, structs, unions, etc.)
@@ -43,6 +46,17 @@ typedef struct Jogador {
     Texture2D sprite;
 } Jogador;
 
+typedef enum TipoDoLixo {
+    PLASTICO, VIDRO, METAL, PAPEL,
+} TipoDoLixo;
+
+typedef struct Lixo {
+    Vector2 pos;
+    TipoDoLixo type;
+    Texture2D sprite;
+    bool active; // Checa se o lixo esta na tela 
+} Lixo;
+
 /*---------------------------------------------
  * Global variables.
  *-------------------------------------------*/
@@ -50,6 +64,15 @@ Jogador jogador;
 Texture2D background;
 Texture2D fire;
 Font tituloFont;
+Texture2D papelLixo;
+Texture2D vidroLixo;
+Texture2D plasticoLixo;
+Texture2D metalLixo; 
+
+#define MAX_LIXOS 20 // O maximo de lixos que podem aparecer na tela
+
+Lixo itensLixo[MAX_LIXOS];
+Texture2D spritesLixo[4]; // Array para os 4 tipos de lixo
 
 /*---------------------------------------------
  * Function prototypes. 
@@ -89,6 +112,20 @@ int main( void ) {
     background = LoadTexture( "resources/images/fundo.jpg" );
     fire = LoadTexture( "resources/images/fire.png" );
     tituloFont = LoadFont("resources/font/Asimovian-Regular.ttf");
+    papelLixo = LoadTexture("resources/images/paperGarbage.png");
+    vidroLixo = LoadTexture("resources/images/glassGarbage.png");
+    plasticoLixo = LoadTexture("resources/images/plasticGarbage.png");
+    metalLixo = LoadTexture("resources/images/metalGarbage.png");
+
+    spritesLixo[PLASTICO] = plasticoLixo;
+    spritesLixo[VIDRO] = vidroLixo;
+    spritesLixo[PAPEL] = papelLixo;
+    spritesLixo[METAL] = metalLixo;
+
+    //loop array lixo
+    for (int i = 0; i < MAX_LIXOS; i++) {
+       itensLixo[i].active = false;
+    } 
 
     // game loop
     while ( !WindowShouldClose() ) {
@@ -100,6 +137,10 @@ int main( void ) {
     UnloadTexture(background);
     UnloadFont(tituloFont);
     UnloadTexture(fire);
+    UnloadTexture(papelLixo);
+    UnloadTexture(vidroLixo);
+    UnloadTexture(plasticoLixo);
+    UnloadTexture(metalLixo);
 
     // close audio device only if your game uses sounds
     CloseWindow();
@@ -129,7 +170,32 @@ void update( float delta ) {
             jogador.spriteX += 100 * delta;
         }
 
+        // apertar G para spawnar o lixo 
+        if(IsKeyPressed(KEY_G)){
+            for(int i = 0; i < MAX_LIXOS; i++){
+                if(!itensLixo[i].active){
+                    itensLixo[i].active = true;
+
+                    //randomiza a posicao do lixo
+                    itensLixo[i].pos.x = GetRandomValue(50, GetScreenHeight() - 50); 
+                    itensLixo[i].pos.y = GetRandomValue(200, GetScreenWidth() - 50);
+
+                    
+
+                    int tipoAleatorio = GetRandomValue (0, 3); //randomiza o tipo de lixo 
+                    itensLixo[i].type = (TipoDoLixo)tipoAleatorio;
+
+                    itensLixo[i].sprite = spritesLixo[tipoAleatorio]; // assign o sprite correto 
+
+                    break;
+                }
+
+            }
+        }
+
     }
+
+    
 }
 
 void draw( void ) {
@@ -183,7 +249,22 @@ void draw_menu(void) {
 }
 
 void draw_gameplay(void) {
+
     
+    
+    //geracao do lixo na tela
+    for (int i = 0; i < MAX_LIXOS; i++) {
+        if (itensLixo[i].active) {
+            Rectangle source = {0.0f, 0.0f, (float)itensLixo[i].sprite.width,
+            (float)itensLixo[i].sprite.height };
+
+            Rectangle dest = {itensLixo[i].pos.x, itensLixo[i].pos.y, LIXO_WIDTH, LIXO_HEIGHT};
+
+            Vector2 origin = {0.0f, 0.0f};
+
+            DrawTexturePro(itensLixo[i].sprite, source, dest, origin, 0.0f, WHITE);
+        }
+    }
     
 
 }
