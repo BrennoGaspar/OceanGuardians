@@ -33,6 +33,9 @@ int ESTADO = PARADO;
 const int LIXO_WIDTH = 40;
 const int LIXO_HEIGHT = 40;
 
+const int LIXEIRA_WIDTH = 70;
+const int LIXEIRA_HEIGHT = 100;
+
 /*---------------------------------------------
  * Custom types (enums, structs, unions, etc.)
  *-------------------------------------------*/
@@ -56,6 +59,13 @@ typedef struct Lixo {
     bool active; // Checa se o lixo esta na tela 
 } Lixo;
 
+typedef struct Lixeira {
+    Rectangle rect;      // Posição e tamanho (será a hitbox)
+    TipoDoLixo type;     // Tipo de lixo que ela aceita
+    Texture2D sprite;    // A imagem da lixeira
+} Lixeira;
+
+
 /*---------------------------------------------
  * Global variables.
  *-------------------------------------------*/
@@ -69,9 +79,16 @@ Texture2D plasticoLixo;
 Texture2D metalLixo; 
 
 #define MAX_LIXOS 20 // O maximo de lixos que podem aparecer na tela
+#define NUM_LIXEIRAS 4
 
 Lixo itensLixo[MAX_LIXOS];
 Texture2D spritesLixo[4]; // Array para os 4 tipos de lixo
+
+Texture2D lixeiraPlastico;
+Texture2D lixeiraVidro;
+Texture2D lixeiraMetal;
+Texture2D lixeiraPapel;
+Lixeira lixeiras [NUM_LIXEIRAS];
 
 /*---------------------------------------------
  * Function prototypes. 
@@ -116,6 +133,10 @@ int main( void ) {
     plasticoLixo = LoadTexture("resources/images/plasticGarbage.png");
     metalLixo = LoadTexture("resources/images/metalGarbage.png");
     jogador.sprite = LoadTexture("resources/images/player.png");
+    lixeiraPlastico = LoadTexture("resources/images/lixeira_plastico.png");
+    lixeiraVidro = LoadTexture("resources/images/lixeira_vidro.png");
+    lixeiraMetal = LoadTexture("resources/images/lixeira_metal.png");
+    lixeiraPapel = LoadTexture("resources/images/lixeira_papel.png");
     jogador.pos = (Vector2){ 400, 500 };    
     jogador.dim = (Vector2){ 225, 225 };   //tamanho do mergulhador   
     jogador.vel = 200; // velocidade do mergulhador
@@ -129,6 +150,24 @@ int main( void ) {
     for (int i = 0; i < MAX_LIXOS; i++) {
        itensLixo[i].active = false;
     } 
+
+    float totalLixeirasWidth = (NUM_LIXEIRAS * LIXEIRA_WIDTH) + ((NUM_LIXEIRAS - 1) * 10); // 10 pixels de espaço entre elas
+    float startX = (GetScreenWidth() - totalLixeirasWidth) / 2.0f;
+    float startY = GetScreenHeight() - LIXEIRA_HEIGHT - 20; // 20 pixels de margem do fundo
+
+    // Configura cada lixeira (tipo e sprite)
+    lixeiras[PLASTICO] = (Lixeira){ .type = PLASTICO, .sprite = lixeiraPlastico };
+    lixeiras[VIDRO] = (Lixeira){ .type = VIDRO, .sprite = lixeiraVidro };
+    lixeiras[METAL] = (Lixeira){ .type = METAL, .sprite = lixeiraMetal };
+    lixeiras[PAPEL] = (Lixeira){ .type = PAPEL, .sprite = lixeiraPapel };
+
+    // Configura a posição e tamanho de cada lixeira
+    for (int i = 0; i < NUM_LIXEIRAS; i++) {
+        lixeiras[i].rect.x = startX + i * (LIXEIRA_WIDTH + 10); // Posição X com espaçamento
+        lixeiras[i].rect.y = startY;
+        lixeiras[i].rect.width = LIXEIRA_WIDTH;
+        lixeiras[i].rect.height = LIXEIRA_HEIGHT;
+    }
 
     // game loop
     while ( !WindowShouldClose() ) {
@@ -144,6 +183,10 @@ int main( void ) {
     UnloadTexture(vidroLixo);
     UnloadTexture(plasticoLixo);
     UnloadTexture(metalLixo);
+    UnloadTexture(lixeiraPlastico);
+    UnloadTexture(lixeiraVidro);
+    UnloadTexture(lixeiraMetal);
+    UnloadTexture(lixeiraPapel);
 
     //Liberação da textura do mergulhador
     UnloadTexture(jogador.sprite);
@@ -261,6 +304,14 @@ void draw_gameplay(void) {
 
             DrawTexturePro(itensLixo[i].sprite, source, dest, origin, 0.0f, WHITE);
         }
+    }
+
+    for (int i = 0; i < NUM_LIXEIRAS; i++) {
+        Rectangle source = { 0.0f, 0.0f, (float)lixeiras[i].sprite.width, (float)lixeiras[i].sprite.height };
+        DrawTexturePro(lixeiras[i].sprite, source, lixeiras[i].rect, (Vector2){0,0}, 0.0f, WHITE);
+
+        // Opcional: descomente a linha abaixo para ver a hitbox das lixeiras
+        // DrawRectangleLinesEx(lixeiras[i].rect, 2, RED);
     }
 }
 
