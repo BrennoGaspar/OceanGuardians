@@ -13,7 +13,7 @@
  * Library headers.
  *-------------------------------------------*/
 #include "raylib/raylib.h"
-//#include "raylib/raymath.h"
+#include "raylib/raymath.h" // Adicionado para Vector2 e funções relacionadas
 
 /*---------------------------------------------
  * Project headers.
@@ -32,7 +32,6 @@ int ESTADO = PARADO;
 
 const int LIXO_WIDTH = 40;
 const int LIXO_HEIGHT = 40;
-
 
 /*---------------------------------------------
  * Custom types (enums, structs, unions, etc.)
@@ -116,6 +115,10 @@ int main( void ) {
     vidroLixo = LoadTexture("resources/images/glassGarbage.png");
     plasticoLixo = LoadTexture("resources/images/plasticGarbage.png");
     metalLixo = LoadTexture("resources/images/metalGarbage.png");
+    jogador.sprite = LoadTexture("resources/images/player.png");
+    jogador.pos = (Vector2){ 400, 500 };    
+    jogador.dim = (Vector2){ 225, 225 };   //tamanho do mergulhador   
+    jogador.vel = 200; // velocidade do mergulhador
 
     spritesLixo[PLASTICO] = plasticoLixo;
     spritesLixo[VIDRO] = vidroLixo;
@@ -142,6 +145,8 @@ int main( void ) {
     UnloadTexture(plasticoLixo);
     UnloadTexture(metalLixo);
 
+    //Liberação da textura do mergulhador
+    UnloadTexture(jogador.sprite);
     // close audio device only if your game uses sounds
     CloseWindow();
 
@@ -151,55 +156,40 @@ int main( void ) {
 
 void update( float delta ) {
     if (ESTADO == PARADO) {
-
         Rectangle iniciar = { 310, 267, 180, 50 };
         bool isCollision = CheckCollisionPointRec( GetMousePosition(), iniciar );
         
         if( isCollision ){
-
             if( IsMouseButtonPressed(MOUSE_LEFT_BUTTON) ){
                 ESTADO = RODANDO;
             }
-
         }
-
     } else if (ESTADO == RODANDO) {
         
-        // Lógica de movimentação do jogador no estado de jogo
-        if (IsKeyDown(KEY_D)) {
-            jogador.spriteX += 100 * delta;
-        }
+        AtualizarJogador(&jogador, KEY_A, KEY_D, KEY_W, KEY_S, delta);
+        // if (IsKeyDown(KEY_D)) {
+        //     jogador.spriteX += 100 * delta;
+        // }
 
         // apertar G para spawnar o lixo 
         if(IsKeyPressed(KEY_G)){
             for(int i = 0; i < MAX_LIXOS; i++){
                 if(!itensLixo[i].active){
                     itensLixo[i].active = true;
-
-                    //randomiza a posicao do lixo
-                    itensLixo[i].pos.x = GetRandomValue(50, GetScreenHeight() - 50); 
-                    itensLixo[i].pos.y = GetRandomValue(200, GetScreenWidth() - 50);
-
+                    itensLixo[i].pos.x = GetRandomValue(50, GetScreenWidth() - 50); 
+                    itensLixo[i].pos.y = GetRandomValue(200, GetScreenHeight() - 50);
                     
-
-                    int tipoAleatorio = GetRandomValue (0, 3); //randomiza o tipo de lixo 
+                    int tipoAleatorio = GetRandomValue (0, 3); 
                     itensLixo[i].type = (TipoDoLixo)tipoAleatorio;
-
-                    itensLixo[i].sprite = spritesLixo[tipoAleatorio]; // assign o sprite correto 
-
+                    itensLixo[i].sprite = spritesLixo[tipoAleatorio]; 
                     break;
                 }
-
             }
         }
-
     }
-
-    
 }
 
 void draw( void ) {
-
     BeginDrawing();
     ClearBackground( WHITE );
 
@@ -210,11 +200,9 @@ void draw( void ) {
     }
 
     EndDrawing();
-
 }
 
 void draw_menu(void) {
-
     // Fundo
     Rectangle sourceRec = { 0.0f, 0.0f, (float)background.width, (float)background.height };
     Rectangle destRec = { 0.0f, 0.0f, (float)GetScreenWidth(), (float)GetScreenHeight() };
@@ -245,14 +233,23 @@ void draw_menu(void) {
     DrawText("XXX", 105, GetScreenHeight()/2 + 20, 20, WHITE);
 
     DrawText("Desenvolvido por estudantes do segundo semestre de ciencia da computacao", 10, 580, 19, BLACK);
-
 }
 
 void draw_gameplay(void) {
+    
+    Rectangle sourceRecBackground = { 0.0f, 0.0f, (float)background.width, (float)background.height };
+    Rectangle destRecBackground = { 0.0f, 0.0f, (float)GetScreenWidth(), (float)GetScreenHeight() };
+    Vector2 originBackground = { 0.0f, 0.0f };
+    DrawTexturePro(background, sourceRecBackground, destRecBackground, originBackground, 0.0f, WHITE);
 
+    // mergulhador(player)
+    Rectangle source = { 0.0f, 0.0f, (float)jogador.sprite.width, (float)jogador.sprite.height };
+    Rectangle dest = { jogador.pos.x, jogador.pos.y, jogador.dim.x, jogador.dim.y };
+    Vector2 origin = { 0.0f, 0.0f };
+
+    DrawTexturePro(jogador.sprite, source, dest, origin, 0.0f, WHITE);
     
-    
-    //geracao do lixo na tela
+    // geracao do lixo na tela
     for (int i = 0; i < MAX_LIXOS; i++) {
         if (itensLixo[i].active) {
             Rectangle source = {0.0f, 0.0f, (float)itensLixo[i].sprite.width,
@@ -265,22 +262,46 @@ void draw_gameplay(void) {
             DrawTexturePro(itensLixo[i].sprite, source, dest, origin, 0.0f, WHITE);
         }
     }
-    
-
 }
 
+// Função para movimento do jogador.
 void AtualizarJogador(Jogador *jogador, int teclaEsquerda, int teclaDireita, int teclaCima, int teclaBaixo, float delta){
+
+    // Movimento do jogador
     if ( IsKeyDown( teclaEsquerda ) ) {
         jogador->pos.x -= jogador->vel * delta;
     }
 
     if ( IsKeyDown( teclaDireita ) ) {
         jogador->pos.x += jogador->vel * delta;
-    }   
+    } 
 
+    if (IsKeyDown(teclaCima)) {
+        jogador->pos.y -= jogador->vel * delta;
+    }
+
+    if (IsKeyDown(teclaBaixo)) {
+        jogador->pos.y += jogador->vel * delta;
+    } 
+
+    // Verificação de limites para manter o jogador na tela
+    // Limite esquerdo
     if ( jogador->pos.x < 0 ) {
         jogador->pos.x = 0;
-    } else if ( jogador->pos.x + jogador->dim.x > GetScreenWidth() ) {
+    }
+    
+    // Limite direito
+    if ( jogador->pos.x + jogador->dim.x > GetScreenWidth() ) {
         jogador->pos.x = GetScreenWidth() - jogador->dim.x;
+    }
+
+    // Limite superior
+    if ( jogador->pos.y < 0 ) {
+        jogador->pos.y = 0;
+    }
+    
+    // Limite inferior
+    if ( jogador->pos.y + jogador->dim.y > GetScreenHeight() ) {
+        jogador->pos.y = GetScreenHeight() - jogador->dim.y;
     }
 }
