@@ -210,17 +210,19 @@ int main( void ) {
 
 void update( float delta ) {
     if (ESTADO == PARADO) {
+        
+        // Botao iniciar
         Rectangle iniciar = { 310, 267, 180, 50 };
         bool isCollision = CheckCollisionPointRec( GetMousePosition(), iniciar );
-        
         if( isCollision ){
             if( IsMouseButtonPressed(MOUSE_LEFT_BUTTON) ){
                 ESTADO = RODANDO;
             }
         }
+        
     } else if (ESTADO == RODANDO) {
 
-        // cronometro
+        // cronometro 
         if( tempoRestante > 0 ) {
             tempoRestante -= GetFrameTime();
         } else {
@@ -231,49 +233,39 @@ void update( float delta ) {
 
         Rectangle jogadorRec = { jogador.pos.x, jogador.pos.y, jogador.dim.x, jogador.dim.y };
 
-        // **Aperte E para pegar o lixo**
+        // Aperte E para pegar o lixo
         if( IsKeyPressed(KEY_E) ){
-            // Loop through all garbage items to check for collision
             for( int i = 0; i < MAX_LIXOS; i++ ){
-                // Check if the garbage item is active and a collision with the player occurs
                 if( itensLixo[i].active ){
                     Rectangle lixoRec = { itensLixo[i].pos.x, itensLixo[i].pos.y, LIXO_WIDTH, LIXO_HEIGHT };
-                    
                     if( CheckCollisionRecs(jogadorRec, lixoRec) ){
-                        // Player picks up the garbage item
-                        jogador.tipoLixo = itensLixo[i].type;
-                        printf("Lixo pego! Tipo: %d\n", jogador.tipoLixo); // Print for debugging
-                        itensLixo[i].active = false; // Make the garbage item disappear
-                        break; // Stop checking after picking up one item
+                        jogador.tipoLixo = itensLixo[i].type;                    
+                        itensLixo[i].active = false;
+                        break;
                     }
                 }
             }
         }
 
-        // **Aperte Q para descartar o lixo**
+        // Aperte Q para descartar o lixo
         if( IsKeyPressed(KEY_Q) && jogador.tipoLixo != NENHUM ){
-            // Loop through all trash cans to check for collision
             for( int i = 0; i < NUM_LIXEIRAS; i++ ){
                 Rectangle lixeiraRec = lixeiras[i].rect;
                 if (CheckCollisionRecs(jogadorRec, lixeiraRec)) {
-                    // Check if the garbage type matches the trash can type
                     if (jogador.tipoLixo == lixeiras[i].type) {
                         printf("Lixo descartado corretamente na lixeira %d!\n", i);
                         jogador.pontuacao += 100;
-                        // Add score logic here
                     } else {
                         printf("Tipo de lixo incorreto. Tente outra lixeira.\n");
                         jogador.pontuacao -= 50;
-                        // Add penalty logic here
                     }
-                    // Reset the player's held garbage to "none"
                     jogador.tipoLixo = NENHUM;
-                    break; // Exit the loop after trying to discard
+                    break;
                 }
             }
         }
         
-        // **Aperte G para spawnar o lixo**
+        // Aperte G para spawnar o lixo
         if(IsKeyPressed(KEY_G)){
             for(int i = 0; i < MAX_LIXOS; i++){
                 if(!itensLixo[i].active){
@@ -378,7 +370,6 @@ void draw_gameplay(void) {
     Rectangle source = { 0.0f, 0.0f, (float)jogador.sprite.width, (float)jogador.sprite.height };
     Rectangle dest = { jogador.pos.x, jogador.pos.y, jogador.dim.x, jogador.dim.y };
     Vector2 origin = { 0.0f, 0.0f };
-
     DrawTexturePro(jogador.sprite, source, dest, origin, 0.0f, WHITE);
     
     // geracao do lixo na tela
@@ -395,16 +386,14 @@ void draw_gameplay(void) {
         }
     }
 
+    // desenho das lixeiras
     for (int i = 0; i < NUM_LIXEIRAS; i++) {
         Rectangle source = { 0.0f, 0.0f, (float)lixeiras[i].sprite.width, (float)lixeiras[i].sprite.height };
         DrawTexturePro(lixeiras[i].sprite, source, lixeiras[i].rect, (Vector2){0,0}, 0.0f, WHITE);
-
-        // Opcional: descomente a linha abaixo para ver a hitbox das lixeiras
-        // DrawRectangleLinesEx(lixeiras[i].rect, 2, RED);
     }
 }
 
-// Função para movimento do jogador.
+// Função para movimento do jogador
 void AtualizarJogador(Jogador *jogador, int teclaEsquerda, int teclaDireita, int teclaCima, int teclaBaixo, float delta){
 
     // Movimento do jogador
