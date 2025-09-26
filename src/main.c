@@ -79,6 +79,7 @@ Texture2D papelLixo;
 Texture2D vidroLixo;
 Texture2D plasticoLixo;
 Texture2D metalLixo; 
+Texture2D frame;
 
 float tempoRestante = 300.0f; // tempo em segundos
 
@@ -141,8 +142,10 @@ int main( void ) {
     lixeiraVidro = LoadTexture("resources/images/lixeira_vidro.png");
     lixeiraMetal = LoadTexture("resources/images/lixeira_metal.png");
     lixeiraPapel = LoadTexture("resources/images/lixeira_papel.png");
+    frame = LoadTexture("resources/images/frame.png");
+    
     jogador.pos = (Vector2){ GetScreenWidth()/2- 40, GetScreenHeight()/2 - 60 };
-    jogador.dim = (Vector2){ 100, 100 };   //tamanho do mergulhador   
+    jogador.dim = (Vector2){ 100, 100 }; //tamanho do mergulhador
     jogador.vel = 200; // velocidade do mergulhador
     jogador.tipoLixo = NENHUM;
     jogador.pontuacao = 0;
@@ -191,6 +194,7 @@ int main( void ) {
     UnloadTexture(lixeiraVidro);
     UnloadTexture(lixeiraMetal);
     UnloadTexture(lixeiraPapel);
+    UnloadTexture(frame);
 
     //Liberação da textura do mergulhador
     UnloadTexture(jogador.sprite);
@@ -333,16 +337,36 @@ void draw_menu(void) {
 
 void draw_gameplay(void) {
     
+    // background
     Rectangle sourceRecBackground = { 0.0f, 0.0f, (float)background.width, (float)background.height };
     Rectangle destRecBackground = { 0.0f, 0.0f, (float)GetScreenWidth(), (float)GetScreenHeight() };
     Vector2 originBackground = { 0.0f, 0.0f };
     DrawTexturePro(background, sourceRecBackground, destRecBackground, originBackground, 0.0f, WHITE);
 
-    DrawText( TextFormat( "%d", jogador.pontuacao ), 20, 15, 30, BLACK );
+    // pontuacao
+    DrawText( TextFormat( "%d", jogador.pontuacao ), 20, 17.5, 30, BLACK );
 
+    // cronometro
     int minutos = (int)(tempoRestante / 60);
     int segundos = (int)(tempoRestante) % 60;
     DrawText( TextFormat( "%02d:%02d", minutos, segundos ), GetScreenWidth()/2 - 30, 15, 40, BLACK );
+
+    // item na mao (frame)
+    Rectangle frameSourceRec = { 0.0f, 0.0f, (float)frame.width, (float)frame.height };
+    Rectangle frameDestRec = { GetScreenWidth() - 75, 10, 55, 55 }; 
+    Vector2 frameOrigin = { 0.0f, 0.0f };   
+    DrawTexturePro(frame, frameSourceRec, frameDestRec, frameOrigin, 0.0f, WHITE);
+
+    // item na mao (lixo)
+    if (jogador.tipoLixo != NENHUM) {
+        Texture2D itemSprite = spritesLixo[jogador.tipoLixo];
+        Rectangle itemSourceRec = { 0, 0, (float)itemSprite.width, (float)itemSprite.height };
+        Rectangle itemDestRec = { GetScreenWidth() - 65, 20, 35, 35 };
+        Vector2 itemOrigin = { 0, 0 };
+        DrawTexturePro(itemSprite, itemSourceRec, itemDestRec, itemOrigin, 0.0f, WHITE);
+    } else {
+        
+    }
 
     // mergulhador(player)
     Rectangle source = { 0.0f, 0.0f, (float)jogador.sprite.width, (float)jogador.sprite.height };
