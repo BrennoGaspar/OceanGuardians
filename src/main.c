@@ -141,7 +141,7 @@ int main( void ) {
     lixeiraVidro = LoadTexture("resources/images/lixeira_vidro.png");
     lixeiraMetal = LoadTexture("resources/images/lixeira_metal.png");
     lixeiraPapel = LoadTexture("resources/images/lixeira_papel.png");
-    jogador.pos = (Vector2){ 400, 500 };    
+    jogador.pos = (Vector2){ GetScreenWidth()/2- 40, GetScreenHeight()/2 - 60 };
     jogador.dim = (Vector2){ 100, 100 };   //tamanho do mergulhador   
     jogador.vel = 200; // velocidade do mergulhador
     jogador.tipoLixo = NENHUM;
