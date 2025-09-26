@@ -39,18 +39,20 @@ const int LIXEIRA_HEIGHT = 100;
 /*---------------------------------------------
  * Custom types (enums, structs, unions, etc.)
  *-------------------------------------------*/
+typedef enum TipoDoLixo {
+    PLASTICO, VIDRO, METAL, PAPEL, NENHUM
+} TipoDoLixo;
+
 typedef struct Jogador {
     int spriteX;
     int spriteY;
     float vel;
+    TipoDoLixo tipoLixo;
+    int pontuacao;
     Vector2 pos;
     Vector2 dim;
     Texture2D sprite;
 } Jogador;
-
-typedef enum TipoDoLixo {
-    PLASTICO, VIDRO, METAL, PAPEL,
-} TipoDoLixo;
 
 typedef struct Lixo {
     Vector2 pos;
@@ -78,10 +80,12 @@ Texture2D vidroLixo;
 Texture2D plasticoLixo;
 Texture2D metalLixo; 
 
+float tempoRestante = 300.0f; // tempo em segundos
+
 #define MAX_LIXOS 20 // O maximo de lixos que podem aparecer na tela
 #define NUM_LIXEIRAS 4
 
-Lixo itensLixo[MAX_LIXOS];
+Lixo itensLixo[MAX_LIXOS]; // Array para os lixos
 Texture2D spritesLixo[4]; // Array para os 4 tipos de lixo
 
 Texture2D lixeiraPlastico;
@@ -138,8 +142,10 @@ int main( void ) {
     lixeiraMetal = LoadTexture("resources/images/lixeira_metal.png");
     lixeiraPapel = LoadTexture("resources/images/lixeira_papel.png");
     jogador.pos = (Vector2){ 400, 500 };    
-    jogador.dim = (Vector2){ 225, 225 };   //tamanho do mergulhador   
+    jogador.dim = (Vector2){ 100, 100 };   //tamanho do mergulhador   
     jogador.vel = 200; // velocidade do mergulhador
+    jogador.tipoLixo = NENHUM;
+    jogador.pontuacao = 0;
 
     spritesLixo[PLASTICO] = plasticoLixo;
     spritesLixo[VIDRO] = vidroLixo;
@@ -151,8 +157,6 @@ int main( void ) {
        itensLixo[i].active = false;
     } 
 
-    float totalLixeirasWidth = (NUM_LIXEIRAS * LIXEIRA_WIDTH) + ((NUM_LIXEIRAS - 1) * 10); // 10 pixels de espaço entre elas
-    float startX = (GetScreenWidth() - totalLixeirasWidth) / 2.0f;
     float startY = GetScreenHeight() - LIXEIRA_HEIGHT - 20; // 20 pixels de margem do fundo
 
     // Configura cada lixeira (tipo e sprite)
@@ -163,7 +167,7 @@ int main( void ) {
 
     // Configura a posição e tamanho de cada lixeira
     for (int i = 0; i < NUM_LIXEIRAS; i++) {
-        lixeiras[i].rect.x = startX + i * (LIXEIRA_WIDTH + 10); // Posição X com espaçamento
+        lixeiras[i].rect.x = 100 + i * (LIXEIRA_WIDTH + 100); // Posição X com espaçamento
         lixeiras[i].rect.y = startY;
         lixeiras[i].rect.width = LIXEIRA_WIDTH;
         lixeiras[i].rect.height = LIXEIRA_HEIGHT;
@@ -208,13 +212,61 @@ void update( float delta ) {
             }
         }
     } else if (ESTADO == RODANDO) {
+
+        // cronometro
+        if( tempoRestante > 0 ) {
+            tempoRestante -= GetFrameTime();
+        } else {
+            ESTADO = PARADO;
+        }
         
         AtualizarJogador(&jogador, KEY_A, KEY_D, KEY_W, KEY_S, delta);
-        // if (IsKeyDown(KEY_D)) {
-        //     jogador.spriteX += 100 * delta;
-        // }
 
-        // apertar G para spawnar o lixo 
+        Rectangle jogadorRec = { jogador.pos.x, jogador.pos.y, jogador.dim.x, jogador.dim.y };
+
+        // **Aperte E para pegar o lixo**
+        if( IsKeyPressed(KEY_E) ){
+            // Loop through all garbage items to check for collision
+            for( int i = 0; i < MAX_LIXOS; i++ ){
+                // Check if the garbage item is active and a collision with the player occurs
+                if( itensLixo[i].active ){
+                    Rectangle lixoRec = { itensLixo[i].pos.x, itensLixo[i].pos.y, LIXO_WIDTH, LIXO_HEIGHT };
+                    
+                    if( CheckCollisionRecs(jogadorRec, lixoRec) ){
+                        // Player picks up the garbage item
+                        jogador.tipoLixo = itensLixo[i].type;
+                        printf("Lixo pego! Tipo: %d\n", jogador.tipoLixo); // Print for debugging
+                        itensLixo[i].active = false; // Make the garbage item disappear
+                        break; // Stop checking after picking up one item
+                    }
+                }
+            }
+        }
+
+        // **Aperte Q para descartar o lixo**
+        if( IsKeyPressed(KEY_Q) && jogador.tipoLixo != NENHUM ){
+            // Loop through all trash cans to check for collision
+            for( int i = 0; i < NUM_LIXEIRAS; i++ ){
+                Rectangle lixeiraRec = lixeiras[i].rect;
+                if (CheckCollisionRecs(jogadorRec, lixeiraRec)) {
+                    // Check if the garbage type matches the trash can type
+                    if (jogador.tipoLixo == lixeiras[i].type) {
+                        printf("Lixo descartado corretamente na lixeira %d!\n", i);
+                        jogador.pontuacao += 100;
+                        // Add score logic here
+                    } else {
+                        printf("Tipo de lixo incorreto. Tente outra lixeira.\n");
+                        jogador.pontuacao -= 50;
+                        // Add penalty logic here
+                    }
+                    // Reset the player's held garbage to "none"
+                    jogador.tipoLixo = NENHUM;
+                    break; // Exit the loop after trying to discard
+                }
+            }
+        }
+        
+        // **Aperte G para spawnar o lixo**
         if(IsKeyPressed(KEY_G)){
             for(int i = 0; i < MAX_LIXOS; i++){
                 if(!itensLixo[i].active){
@@ -222,9 +274,10 @@ void update( float delta ) {
                     itensLixo[i].pos.x = GetRandomValue(50, GetScreenWidth() - 50); 
                     itensLixo[i].pos.y = GetRandomValue(200, GetScreenHeight() - 50);
                     
-                    int tipoAleatorio = GetRandomValue (0, 3); 
+                    int tipoAleatorio = GetRandomValue(0, 3); 
                     itensLixo[i].type = (TipoDoLixo)tipoAleatorio;
                     itensLixo[i].sprite = spritesLixo[tipoAleatorio]; 
+                    
                     break;
                 }
             }
@@ -284,6 +337,12 @@ void draw_gameplay(void) {
     Rectangle destRecBackground = { 0.0f, 0.0f, (float)GetScreenWidth(), (float)GetScreenHeight() };
     Vector2 originBackground = { 0.0f, 0.0f };
     DrawTexturePro(background, sourceRecBackground, destRecBackground, originBackground, 0.0f, WHITE);
+
+    DrawText( TextFormat( "%d", jogador.pontuacao ), 20, 15, 30, BLACK );
+
+    int minutos = (int)(tempoRestante / 60);
+    int segundos = (int)(tempoRestante) % 60;
+    DrawText( TextFormat( "%02d:%02d", minutos, segundos ), GetScreenWidth()/2 - 30, 15, 40, BLACK );
 
     // mergulhador(player)
     Rectangle source = { 0.0f, 0.0f, (float)jogador.sprite.width, (float)jogador.sprite.height };
