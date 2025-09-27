@@ -51,6 +51,7 @@ typedef struct Jogador {
     float vel;
     TipoDoLixo tipoLixo;
     int pontuacao;
+    int melhorPontuacao;
     Vector2 pos;
     Vector2 dim;
     Texture2D sprite;
@@ -237,6 +238,7 @@ void update( float delta ) {
         if( tempoRestante > 0 ) {
             tempoRestante -= GetFrameTime();
         } else if ( tempoRestante <= 0 && jogador.pontuacao < 3000 ) { // Sistema de derrota
+            jogador.melhorPontuacao = jogador.pontuacao;
             tempoRestante = 0;
             ESTADO = GAME_LOSE;
         }
@@ -296,6 +298,7 @@ void update( float delta ) {
 
         // Sistema de vitoria
         if ( jogador.pontuacao == 3000 ){
+            jogador.melhorPontuacao = jogador.pontuacao;
             ESTADO = GAME_WIN;
         }
 
@@ -377,7 +380,7 @@ void draw_menu( void ){
     DrawTexturePro(fire, fireSourceRec, fireDestRec, fireOrigin, 0, WHITE);
     DrawText("Melhor", 75, GetScreenHeight()/2 - 20, 20, WHITE);
     DrawText("Pontuacao:", 75, GetScreenHeight()/2 - 5, 20, WHITE);
-    DrawText("XXX", 105, GetScreenHeight()/2 + 20, 20, WHITE);
+    DrawText( TextFormat( "%03d", jogador.melhorPontuacao ) , 105, GetScreenHeight()/2 + 20, 20, WHITE);
 
     DrawText("Desenvolvido por estudantes do segundo semestre de ciencia da computacao", 10, 580, 19, BLACK);
 }
