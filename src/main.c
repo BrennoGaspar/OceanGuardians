@@ -28,13 +28,15 @@
  *------------------------------------------*/
 const int PARADO = 0;
 const int RODANDO = 1;
+const int GAME_WIN = 2;
+const int GAME_LOSE = 3;
 int ESTADO = PARADO; 
 
 const int LIXO_WIDTH = 40;
 const int LIXO_HEIGHT = 40;
 
-const int LIXEIRA_WIDTH = 70;
-const int LIXEIRA_HEIGHT = 100;
+const int LIXEIRA_WIDTH = 95;
+const int LIXEIRA_HEIGHT = 135;
 
 /*---------------------------------------------
  * Custom types (enums, structs, unions, etc.)
@@ -84,7 +86,7 @@ Texture2D hand;
 
 float tempoRestante = 300.0f; // tempo em segundos
 
-#define MAX_LIXOS 20 // O maximo de lixos que podem aparecer na tela
+#define MAX_LIXOS 1 // O maximo de lixos que podem aparecer na tela
 #define NUM_LIXEIRAS 4
 
 Lixo itensLixo[MAX_LIXOS]; // Array para os lixos
@@ -110,6 +112,8 @@ void update( float delta );
 void draw( void );
 void draw_menu(void);
 void draw_gameplay(void);
+void draw_win(void);
+void draw_lose(void);
 
 void AtualizarJogador(Jogador *jogador, int teclaEsquerda, int teclaDireita, int teclaCima, int teclaBaixo, float delta);
 
@@ -172,7 +176,7 @@ int main( void ) {
 
     // Configura a posição e tamanho de cada lixeira
     for (int i = 0; i < NUM_LIXEIRAS; i++) {
-        lixeiras[i].rect.x = 100 + i * (LIXEIRA_WIDTH + 100); // Posição X com espaçamento
+        lixeiras[i].rect.x = 60 + i * (LIXEIRA_WIDTH + 100); // Posição X com espaçamento
         lixeiras[i].rect.y = startY;
         lixeiras[i].rect.width = LIXEIRA_WIDTH;
         lixeiras[i].rect.height = LIXEIRA_HEIGHT;
@@ -217,6 +221,13 @@ void update( float delta ) {
         if( isCollision ){
             if( IsMouseButtonPressed(MOUSE_LEFT_BUTTON) ){
                 ESTADO = RODANDO;
+                // Spawn do primeiro lixo do jogo
+                itensLixo[0].active = true;
+                itensLixo[0].pos.x = GetRandomValue(30, GetScreenWidth() - 30);
+                itensLixo[0].pos.y = GetRandomValue(60, GetScreenHeight() - 150);
+                int tipoAleatorio = GetRandomValue(0, 3);
+                itensLixo[0].type = (TipoDoLixo)tipoAleatorio;
+                itensLixo[0].sprite = spritesLixo[tipoAleatorio];
             }
         }
         
@@ -225,12 +236,15 @@ void update( float delta ) {
         // cronometro 
         if( tempoRestante > 0 ) {
             tempoRestante -= GetFrameTime();
-        } else {
-            ESTADO = PARADO;
+        } else if ( tempoRestante <= 0 && jogador.pontuacao < 3000 ) { // Sistema de derrota
+            tempoRestante = 0;
+            ESTADO = GAME_LOSE;
         }
-        
+
+        // movimentacao do jogador
         AtualizarJogador(&jogador, KEY_A, KEY_D, KEY_W, KEY_S, delta);
 
+        // Colisao do jogador
         Rectangle jogadorRec = { jogador.pos.x, jogador.pos.y, jogador.dim.x, jogador.dim.y };
 
         // Aperte E para pegar o lixo
@@ -259,26 +273,60 @@ void update( float delta ) {
                         printf("Tipo de lixo incorreto. Tente outra lixeira.\n");
                         jogador.pontuacao -= 50;
                     }
+                    // Spawn do lixo
+                    for(int i = 0; i < MAX_LIXOS; i++){
+                        if(!itensLixo[i].active){
+                            itensLixo[i].active = true;
+                            itensLixo[i].pos.x = GetRandomValue(30, GetScreenWidth() - 30); 
+                            itensLixo[i].pos.y = GetRandomValue(60, GetScreenHeight() - 150);
+                            
+                            int tipoAleatorio = GetRandomValue(0, 3); 
+                            itensLixo[i].type = (TipoDoLixo)tipoAleatorio;
+                            itensLixo[i].sprite = spritesLixo[tipoAleatorio]; 
+                            
+                            break;
+                        }
+                    }
+                    // Limpa o lixo da mão do jogador
                     jogador.tipoLixo = NENHUM;
                     break;
                 }
             }
         }
-        
-        // Aperte G para spawnar o lixo
-        if(IsKeyPressed(KEY_G)){
-            for(int i = 0; i < MAX_LIXOS; i++){
-                if(!itensLixo[i].active){
-                    itensLixo[i].active = true;
-                    itensLixo[i].pos.x = GetRandomValue(50, GetScreenWidth() - 50); 
-                    itensLixo[i].pos.y = GetRandomValue(200, GetScreenHeight() - 50);
-                    
-                    int tipoAleatorio = GetRandomValue(0, 3); 
-                    itensLixo[i].type = (TipoDoLixo)tipoAleatorio;
-                    itensLixo[i].sprite = spritesLixo[tipoAleatorio]; 
-                    
-                    break;
-                }
+
+        // Sistema de vitoria
+        if ( jogador.pontuacao == 3000 ){
+            ESTADO = GAME_WIN;
+        }
+
+    } else if (ESTADO == GAME_WIN){
+        // Botao menu
+        Rectangle menu = { 310, 267, 180, 50 };
+        bool isCollision = CheckCollisionPointRec( GetMousePosition(), menu );
+        if( isCollision ){
+            if( IsMouseButtonPressed(MOUSE_LEFT_BUTTON) ){
+                ESTADO = PARADO;
+                jogador.pontuacao = 0;
+                tempoRestante = 300.0f;
+                jogador.tipoLixo = NENHUM;
+                for (int i = 0; i < MAX_LIXOS; i++) {
+                    itensLixo[i].active = false;
+                } 
+            }
+        }
+    } else if (ESTADO == GAME_LOSE){
+        // Botao menu
+        Rectangle menu = { 310, 267, 180, 50 };
+        bool isCollision = CheckCollisionPointRec( GetMousePosition(), menu );
+        if( isCollision ){
+            if( IsMouseButtonPressed(MOUSE_LEFT_BUTTON) ){
+                ESTADO = PARADO;
+                jogador.pontuacao = 0;
+                tempoRestante = 300.0f;
+                jogador.tipoLixo = NENHUM;
+                for (int i = 0; i < MAX_LIXOS; i++) {
+                    itensLixo[i].active = false;
+                } 
             }
         }
     }
@@ -292,12 +340,16 @@ void draw( void ) {
         draw_menu();
     } else if (ESTADO == RODANDO) {
         draw_gameplay();
+    } else if (ESTADO == GAME_WIN){
+        draw_win();
+    } else if (ESTADO == GAME_LOSE){
+        draw_lose();
     }
 
     EndDrawing();
 }
 
-void draw_menu(void) {
+void draw_menu( void ){
     // Fundo
     Rectangle sourceRec = { 0.0f, 0.0f, (float)background.width, (float)background.height };
     Rectangle destRec = { 0.0f, 0.0f, (float)GetScreenWidth(), (float)GetScreenHeight() };
@@ -330,13 +382,38 @@ void draw_menu(void) {
     DrawText("Desenvolvido por estudantes do segundo semestre de ciencia da computacao", 10, 580, 19, BLACK);
 }
 
-void draw_gameplay(void) {
-    
+void draw_gameplay( void ){
     // background
     Rectangle sourceRecBackground = { 0.0f, 0.0f, (float)background.width, (float)background.height };
     Rectangle destRecBackground = { 0.0f, 0.0f, (float)GetScreenWidth(), (float)GetScreenHeight() };
     Vector2 originBackground = { 0.0f, 0.0f };
     DrawTexturePro(background, sourceRecBackground, destRecBackground, originBackground, 0.0f, WHITE);
+
+    // desenho das lixeiras
+    for (int i = 0; i < NUM_LIXEIRAS; i++) {
+        Rectangle source = { 0.0f, 0.0f, (float)lixeiras[i].sprite.width, (float)lixeiras[i].sprite.height };
+        DrawTexturePro(lixeiras[i].sprite, source, lixeiras[i].rect, (Vector2){0,0}, 0.0f, WHITE);
+    }
+    
+    // geracao do lixo na tela
+    for (int i = 0; i < MAX_LIXOS; i++) {
+        if (itensLixo[i].active) {
+            Rectangle source = {0.0f, 0.0f, (float)itensLixo[i].sprite.width,
+            (float)itensLixo[i].sprite.height };
+
+            Rectangle dest = {itensLixo[i].pos.x, itensLixo[i].pos.y, LIXO_WIDTH, LIXO_HEIGHT};
+
+            Vector2 origin = {0.0f, 0.0f};
+
+            DrawTexturePro(itensLixo[i].sprite, source, dest, origin, 0.0f, WHITE);
+        }
+    }
+
+    // mergulhador(player)
+    Rectangle source = { 0.0f, 0.0f, (float)jogador.sprite.width, (float)jogador.sprite.height };
+    Rectangle dest = { jogador.pos.x, jogador.pos.y, jogador.dim.x, jogador.dim.y };
+    Vector2 origin = { 0.0f, 0.0f };
+    DrawTexturePro(jogador.sprite, source, dest, origin, 0.0f, WHITE);
 
     // pontuacao
     DrawText( TextFormat( "%d", jogador.pontuacao ), 20, 17.5, 30, BLACK );
@@ -365,32 +442,48 @@ void draw_gameplay(void) {
         Vector2 handOrigin = { 0, 0 };   
         DrawTexturePro(hand, handSourceRec, handDestRec, handOrigin, 0, WHITE);
     }
+}
 
-    // mergulhador(player)
-    Rectangle source = { 0.0f, 0.0f, (float)jogador.sprite.width, (float)jogador.sprite.height };
-    Rectangle dest = { jogador.pos.x, jogador.pos.y, jogador.dim.x, jogador.dim.y };
+void draw_win( void ){
+    // Fundo
+    Rectangle sourceRec = { 0.0f, 0.0f, (float)background.width, (float)background.height };
+    Rectangle destRec = { 0.0f, 0.0f, (float)GetScreenWidth(), (float)GetScreenHeight() };
     Vector2 origin = { 0.0f, 0.0f };
-    DrawTexturePro(jogador.sprite, source, dest, origin, 0.0f, WHITE);
-    
-    // geracao do lixo na tela
-    for (int i = 0; i < MAX_LIXOS; i++) {
-        if (itensLixo[i].active) {
-            Rectangle source = {0.0f, 0.0f, (float)itensLixo[i].sprite.width,
-            (float)itensLixo[i].sprite.height };
+    Color transparentWhite = ColorAlpha(WHITE, 0.9f);
+    DrawTexturePro(background, sourceRec, destRec, origin, 0.0f, transparentWhite);
 
-            Rectangle dest = {itensLixo[i].pos.x, itensLixo[i].pos.y, LIXO_WIDTH, LIXO_HEIGHT};
+    // Mensagem de win e botao
+    Vector2 tituloPos = { GetScreenWidth() / 2 - MeasureTextEx(tituloFont, "Vitória", 100, 1).x / 2, 100 };
+    DrawTextEx(tituloFont, "Vitoria", tituloPos, 100, 1, WHITE);
+    DrawRectangle(310, 267, 180, 50, BLUE);
+    int iniciarTextWidth = MeasureText("MENU", 30);
+    DrawText("MENU", GetScreenWidth()/2 - iniciarTextWidth/2, 280, 30, WHITE);
 
-            Vector2 origin = {0.0f, 0.0f};
+    // Textos secundarios
+    DrawRectangle( (GetScreenWidth() / 2 - 250), (GetScreenHeight() / 2 + 75), 480, 70, BLUE );
+    DrawText("Sua ajuda virou o jogo contra a poluição!", GetScreenWidth()/2 - 225 , 390, 20, WHITE);
+    DrawText("Seja a mudança que você quer ver no mar!", GetScreenWidth()/2 - 225 , 410, 20, WHITE);
+}
 
-            DrawTexturePro(itensLixo[i].sprite, source, dest, origin, 0.0f, WHITE);
-        }
-    }
+void draw_lose( void ){
+    // Fundo
+    Rectangle sourceRec = { 0.0f, 0.0f, (float)background.width, (float)background.height };
+    Rectangle destRec = { 0.0f, 0.0f, (float)GetScreenWidth(), (float)GetScreenHeight() };
+    Vector2 origin = { 0.0f, 0.0f };
+    Color transparentWhite = ColorAlpha(WHITE, 0.9f);
+    DrawTexturePro(background, sourceRec, destRec, origin, 0.0f, transparentWhite);
 
-    // desenho das lixeiras
-    for (int i = 0; i < NUM_LIXEIRAS; i++) {
-        Rectangle source = { 0.0f, 0.0f, (float)lixeiras[i].sprite.width, (float)lixeiras[i].sprite.height };
-        DrawTexturePro(lixeiras[i].sprite, source, lixeiras[i].rect, (Vector2){0,0}, 0.0f, WHITE);
-    }
+    // Mensagem de win e botao
+    Vector2 tituloPos = { GetScreenWidth() / 2 - MeasureTextEx(tituloFont, "Vitória", 100, 1).x / 2 - 30, 100 };
+    DrawTextEx(tituloFont, "Derrota", tituloPos, 100, 1, WHITE);
+    DrawRectangle(310, 267, 180, 50, BLUE);
+    int iniciarTextWidth = MeasureText("MENU", 30);
+    DrawText("MENU", GetScreenWidth()/2 - iniciarTextWidth/2, 280, 30, WHITE);
+
+    // Textos secundarios
+    DrawRectangle( (GetScreenWidth() / 2 - 225), (GetScreenHeight() / 2 + 75), 420, 70, BLUE );
+    DrawText("A poluição tomou conta desta vez...", GetScreenWidth()/2 - 200 , 390, 20, WHITE);
+    DrawText("Mas você ainda pode lutar pelo mar!", GetScreenWidth()/2 - 200 , 410, 20, WHITE);
 }
 
 // Função para movimento do jogador
