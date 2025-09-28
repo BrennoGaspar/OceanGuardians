@@ -88,6 +88,8 @@ Texture2D background;
 Texture2D start;
 Texture2D fire;
 Texture2D legenda;
+Texture2D placaLegenda;
+Texture2D madeira;
 Font tituloFont;
 Texture2D papelLixo;
 Texture2D vidroLixo;
@@ -150,6 +152,8 @@ int main( void ) {
     background = LoadTexture( "resources/images/fundo.jpg" );
     fire = LoadTexture( "resources/images/fire.png" );
     legenda = LoadTexture( "resources/images/legenda.png" );
+    placaLegenda = LoadTexture( "resources/images/placa_legenda.png" );
+    madeira = LoadTexture( "resources/images/madeira.png" );
     start = LoadTexture( "resources/images/start_button.png" );
     tituloFont = LoadFont("resources/font/Asimovian-Regular.ttf");
     papelLixo = LoadTexture("resources/images/paperGarbage.png");
@@ -217,6 +221,8 @@ int main( void ) {
     UnloadFont(tituloFont);
     UnloadTexture(fire);
     UnloadTexture(legenda);
+    UnloadTexture(placaLegenda);
+    UnloadTexture(madeira);
     UnloadTexture(start);
     UnloadTexture(papelLixo);
     UnloadTexture(vidroLixo);
@@ -419,8 +425,8 @@ void draw_menu( void ){
     DrawTexturePro(background, sourceRec, destRec, origin, 0, transparentWhite);
 
     // Titulo
-    Vector2 tituloPos = { GetScreenWidth() / 2 - MeasureTextEx(tituloFont, "Ocean Guardian", 100, 1).x / 2, 100 };
-    DrawTextEx(tituloFont, "Ocean Guardian", tituloPos, 100, 1, WHITE);
+    Vector2 tituloPos = { GetScreenWidth() / 2 - MeasureTextEx(tituloFont, "Ocean Guardians", 100, 1).x / 2, 100 };
+    DrawTextEx(tituloFont, "Ocean Guardians", tituloPos, 100, 1, WHITE);
     // Botao start
     Rectangle startSourceRec = { 0, 0, (float)start.width, (float)start.height};
     Rectangle startDestRec = { GetScreenWidth()/2 - 150, 163.5, 300, 250 };
@@ -429,25 +435,32 @@ void draw_menu( void ){
     
 
     // Legenda
-    DrawRectangle( GetScreenWidth() - 225, GetScreenHeight() / 2 - 110, 150, 170, BLUE );
+    Rectangle placaLegendaSourceRec = { 0, 0, (float)placaLegenda.width, (float)placaLegenda.height};
+    Rectangle placaLegendaDestRec = { GetScreenWidth() - 200, GetScreenHeight() - 360, 200, 280 };
+    Vector2 placaLegendaOrigin = { 0 , 0 };
+    DrawTexturePro(placaLegenda, placaLegendaSourceRec, placaLegendaDestRec, placaLegendaOrigin, 0, WHITE);
+    // Figura legenda
     Rectangle legendaSourceRec = { 0, 0, (float)legenda.width, (float)legenda.height};
-    Rectangle legendaDestRec = { GetScreenWidth() - 375, GetScreenHeight() / 2 - 115, 450, 200 };
+    Rectangle legendaDestRec = { GetScreenWidth() - 325, GetScreenHeight() - 335, 450, 200 };
     Vector2 legendaOrigin = { 0 , 0 };
     DrawTexturePro(legenda, legendaSourceRec, legendaDestRec, legendaOrigin, 0, WHITE);
 
     // Textos secundarios
-    DrawRectangle( (GetScreenWidth() / 2 - 175), (GetScreenHeight() / 2 + 75), 370, 90, BLUE );
-    DrawText("WASD para movimentacao", GetScreenWidth()/2 - 150 , 390, 20, WHITE);
-    DrawText("Aperte E para pegar o lixo", GetScreenWidth()/2 - 150 , 410, 20, WHITE);
-    DrawText("Aperte Q para descartar o lixo", GetScreenWidth()/2 - 150 , 430, 20, WHITE);
+    Rectangle madeiraSourceRec = { 0, 0, (float)madeira.width, (float)madeira.height};
+    Rectangle madeiraDestRec = { GetScreenWidth() - 630, GetScreenHeight() / 2 + 70 , 450, 200 };
+    Vector2 madeiraOrigin = { 0 , 0 };
+    DrawTexturePro(madeira, madeiraSourceRec, madeiraDestRec, madeiraOrigin, 0, WHITE);
+    DrawText("WASD para movimentacao", GetScreenWidth()/2 - 150 , 435, 20, WHITE);
+    DrawText("Aperte E para pegar o lixo", GetScreenWidth()/2 - 150 , 455, 20, WHITE);
+    DrawText("Aperte Q para descartar o lixo", GetScreenWidth()/2 - 150 , 475, 20, WHITE);
 
     Rectangle fireSourceRec = { 0, 0, (float)fire.width, (float)fire.height};
-    Rectangle fireDestRec = { 5, GetScreenHeight() / 2 - 110, 250, 190 };
+    Rectangle fireDestRec = { 45, GetScreenHeight() / 2 - 105, 160, 160 };
     Vector2 fireOrigin = { 0 , 0 };
     DrawTexturePro(fire, fireSourceRec, fireDestRec, fireOrigin, 0, WHITE);
     DrawText("Melhor", 75, GetScreenHeight()/2 - 20, 20, WHITE);
     DrawText("Pontuacao:", 75, GetScreenHeight()/2 - 5, 20, WHITE);
-    DrawText( TextFormat( "%03d", jogador.melhorPontuacao ) , 105, GetScreenHeight()/2 + 20, 20, WHITE);
+    DrawText( TextFormat( "%03d", jogador.melhorPontuacao ) , 110, GetScreenHeight()/2 + 20, 20, WHITE);
 
     DrawText("Desenvolvido por estudantes do segundo semestre de ciencia da computacao", 10, 580, 19, BLACK);
 }
