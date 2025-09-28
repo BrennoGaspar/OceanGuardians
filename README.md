@@ -20,7 +20,7 @@ Promover, por meio de uma experiência lúdica e interativa, a conscientização
 ---
 
 ## 🕹️ Mecânicas do Jogo
-- **Controle de personagem:** o jogador assume o comando de um **submarino ou barco**.  
+- **Controle de personagem:** o jogador assume o comando de um **mergulhador**.  
 - **Captura de resíduos:** recolhimento de materiais poluentes dispersos no ambiente.  
 - **Entrega de resíduos:** destinação correta dos poluentes capturados.  
 - **Sistema de pontuação:** recompensa por boas ações ambientais.  
