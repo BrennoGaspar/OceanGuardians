@@ -32,11 +32,11 @@ const int GAME_WIN = 2;
 const int GAME_LOSE = 3;
 int ESTADO = PARADO; 
 
-const int LIXO_WIDTH = 40;
-const int LIXO_HEIGHT = 40;
+const int LIXO_WIDTH = 30;
+const int LIXO_HEIGHT = 35;
 
-const int LIXEIRA_WIDTH = 95;
-const int LIXEIRA_HEIGHT = 135;
+const int LIXEIRA_WIDTH = 90;
+const int LIXEIRA_HEIGHT = 110;
 
 /*---------------------------------------------
  * Custom types (enums, structs, unions, etc.)
@@ -412,12 +412,6 @@ void draw_gameplay( void ){
         }
     }
 
-    // mergulhador(player)
-    Rectangle source = { 0.0f, 0.0f, (float)jogador.sprite.width, (float)jogador.sprite.height };
-    Rectangle dest = { jogador.pos.x, jogador.pos.y, jogador.dim.x, jogador.dim.y };
-    Vector2 origin = { 0.0f, 0.0f };
-    DrawTexturePro(jogador.sprite, source, dest, origin, 0.0f, WHITE);
-
     // pontuacao
     DrawText( TextFormat( "%d", jogador.pontuacao ), 20, 17.5, 30, BLACK );
 
@@ -436,15 +430,21 @@ void draw_gameplay( void ){
     if (jogador.tipoLixo != NENHUM) {
         Texture2D itemSprite = spritesLixo[jogador.tipoLixo];
         Rectangle itemSourceRec = { 0, 0, (float)itemSprite.width, (float)itemSprite.height };
-        Rectangle itemDestRec = { GetScreenWidth() - 65, 20, 35, 35 };
+        Rectangle itemDestRec = { GetScreenWidth() - 60, 22, 25, 30 };
         Vector2 itemOrigin = { 0, 0 };
         DrawTexturePro(itemSprite, itemSourceRec, itemDestRec, itemOrigin, 0, WHITE);
     } else {
         Rectangle handSourceRec = { 0, 0, (float)hand.width, (float)hand.height };
-        Rectangle handDestRec = { GetScreenWidth() - 63, 22, 33, 33 }; 
+        Rectangle handDestRec = { GetScreenWidth() - 63, 23, 32, 27 }; 
         Vector2 handOrigin = { 0, 0 };   
         DrawTexturePro(hand, handSourceRec, handDestRec, handOrigin, 0, WHITE);
     }
+
+    // mergulhador(player)
+    Rectangle source = { 0.0f, 0.0f, (float)jogador.sprite.width, (float)jogador.sprite.height };
+    Rectangle dest = { jogador.pos.x, jogador.pos.y, jogador.dim.x, jogador.dim.y };
+    Vector2 origin = { 0.0f, 0.0f };
+    DrawTexturePro(jogador.sprite, source, dest, origin, 0.0f, WHITE);
 }
 
 void draw_win( void ){
