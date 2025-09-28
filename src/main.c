@@ -350,9 +350,14 @@ void update( float delta ) {
             jogador.pos = (Vector2){ GetScreenWidth()/2- 40, GetScreenHeight()/2 - 60 };
         }
 
-        // Botao "P" para ganhar automaticamente
-        if( IsKeyPressed(KEY_P) ){
+        // Botao "G" para ganhar automaticamente
+        if( IsKeyPressed(KEY_G) ){
             jogador.pontuacao = 2000;
+        }
+
+        // Botao "P" para perder automaticamente
+        if( IsKeyPressed(KEY_P) ){
+            tempoRestante = 0;
         }
 
     } else if (ESTADO == GAME_WIN){
