@@ -86,6 +86,7 @@ typedef struct Lixeira {
 Jogador jogador;
 Texture2D background;
 Texture2D fire;
+Texture2D legenda;
 Font tituloFont;
 Texture2D papelLixo;
 Texture2D vidroLixo;
@@ -147,6 +148,7 @@ int main( void ) {
     // Load all game resources here
     background = LoadTexture( "resources/images/fundo.jpg" );
     fire = LoadTexture( "resources/images/fire.png" );
+    legenda = LoadTexture( "resources/images/legenda.png" );
     tituloFont = LoadFont("resources/font/Asimovian-Regular.ttf");
     papelLixo = LoadTexture("resources/images/paperGarbage.png");
     vidroLixo = LoadTexture("resources/images/glassGarbage.png");
@@ -212,6 +214,7 @@ int main( void ) {
     UnloadTexture(background);
     UnloadFont(tituloFont);
     UnloadTexture(fire);
+    UnloadTexture(legenda);
     UnloadTexture(papelLixo);
     UnloadTexture(vidroLixo);
     UnloadTexture(plasticoLixo);
@@ -414,6 +417,13 @@ void draw_menu( void ){
     DrawRectangle(310, 267, 180, 50, BLUE);
     int iniciarTextWidth = MeasureText("INICIAR", 30);
     DrawText("INICIAR", GetScreenWidth()/2 - iniciarTextWidth/2, 280, 30, WHITE);
+
+    // Legenda
+    DrawRectangle( GetScreenWidth() - 225, GetScreenHeight() / 2 - 110, 150, 170, BLUE );
+    Rectangle legendaSourceRec = { 0, 0, (float)legenda.width, (float)legenda.height};
+    Rectangle legendaDestRec = { GetScreenWidth() - 375, GetScreenHeight() / 2 - 115, 450, 200 };
+    Vector2 legendaOrigin = { 0 , 0 };
+    DrawTexturePro(legenda, legendaSourceRec, legendaDestRec, legendaOrigin, 0, WHITE);
 
     // Textos secundarios
     DrawRectangle( (GetScreenWidth() / 2 - 175), (GetScreenHeight() / 2 + 75), 370, 90, BLUE );
