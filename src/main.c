@@ -85,6 +85,7 @@ typedef struct Lixeira {
  *-------------------------------------------*/
 Jogador jogador;
 Texture2D background;
+Texture2D start;
 Texture2D fire;
 Texture2D legenda;
 Font tituloFont;
@@ -149,6 +150,7 @@ int main( void ) {
     background = LoadTexture( "resources/images/fundo.jpg" );
     fire = LoadTexture( "resources/images/fire.png" );
     legenda = LoadTexture( "resources/images/legenda.png" );
+    start = LoadTexture( "resources/images/start_button.png" );
     tituloFont = LoadFont("resources/font/Asimovian-Regular.ttf");
     papelLixo = LoadTexture("resources/images/paperGarbage.png");
     vidroLixo = LoadTexture("resources/images/glassGarbage.png");
@@ -215,6 +217,7 @@ int main( void ) {
     UnloadFont(tituloFont);
     UnloadTexture(fire);
     UnloadTexture(legenda);
+    UnloadTexture(start);
     UnloadTexture(papelLixo);
     UnloadTexture(vidroLixo);
     UnloadTexture(plasticoLixo);
@@ -239,7 +242,7 @@ void update( float delta ) {
     if (ESTADO == PARADO) {
 
         // Botao iniciar
-        Rectangle iniciar = { 310, 267, 180, 50 };
+        Rectangle iniciar = { GetScreenWidth()/2 - 90, 260, 180, 55 };
         bool isCollision = CheckCollisionPointRec( GetMousePosition(), iniciar );
         if( isCollision ){
             if( IsMouseButtonPressed(MOUSE_LEFT_BUTTON) ){
@@ -410,13 +413,15 @@ void draw_menu( void ){
     Color transparentWhite = ColorAlpha(WHITE, 0.9f);
     DrawTexturePro(background, sourceRec, destRec, origin, 0, transparentWhite);
 
-    // Titulo e botao
+    // Titulo
     Vector2 tituloPos = { GetScreenWidth() / 2 - MeasureTextEx(tituloFont, "Ocean Guardian", 100, 1).x / 2, 100 };
     DrawTextEx(tituloFont, "Ocean Guardian", tituloPos, 100, 1, WHITE);
-
-    DrawRectangle(310, 267, 180, 50, BLUE);
-    int iniciarTextWidth = MeasureText("INICIAR", 30);
-    DrawText("INICIAR", GetScreenWidth()/2 - iniciarTextWidth/2, 280, 30, WHITE);
+    // Botao start
+    Rectangle startSourceRec = { 0, 0, (float)start.width, (float)start.height};
+    Rectangle startDestRec = { GetScreenWidth()/2 - 150, 163.5, 300, 250 };
+    Vector2 startOrigin = { 0 , 0 };
+    DrawTexturePro(start, startSourceRec, startDestRec, startOrigin, 0, WHITE);
+    
 
     // Legenda
     DrawRectangle( GetScreenWidth() - 225, GetScreenHeight() / 2 - 110, 150, 170, BLUE );
