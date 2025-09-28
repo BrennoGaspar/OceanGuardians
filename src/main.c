@@ -257,9 +257,12 @@ void update( float delta ) {
         if( tempoRestante > 0 ) {
             tempoRestante -= GetFrameTime();
         } else if ( tempoRestante <= 0 && jogador.pontuacao < 2000 ) { // Sistema de derrota
-            jogador.melhorPontuacao = jogador.pontuacao;
+            if( jogador.melhorPontuacao < jogador.pontuacao ){
+                jogador.melhorPontuacao = jogador.pontuacao;
+            }
             tempoRestante = 0;
             ESTADO = GAME_LOSE;
+            jogador.pos = (Vector2){ GetScreenWidth()/2- 40, GetScreenHeight()/2 - 60 };
         }
 
         // movimentacao do jogador
@@ -334,8 +337,16 @@ void update( float delta ) {
 
         // Sistema de vitoria
         if ( jogador.pontuacao >= 2000 ){
-            jogador.melhorPontuacao = jogador.pontuacao;
+            if( jogador.melhorPontuacao < jogador.pontuacao ){
+                jogador.melhorPontuacao = jogador.pontuacao;
+            }
             ESTADO = GAME_WIN;
+            jogador.pos = (Vector2){ GetScreenWidth()/2- 40, GetScreenHeight()/2 - 60 };
+        }
+
+        // Botao "P" para ganhar automaticamente
+        if( IsKeyPressed(KEY_P) ){
+            jogador.pontuacao = 2000;
         }
 
     } else if (ESTADO == GAME_WIN){
@@ -477,6 +488,7 @@ void draw_gameplay( void ){
     }
 
     // mergulhador(player)
+    // inverter o sprite caso o jogador esteja se movendo para a direita
     float frameWidth = (float)jogador.frameWidth;
     if (jogador.isFlipped) {
         frameWidth = -frameWidth; // vira o sprite horizontalmente
@@ -572,5 +584,5 @@ void AtualizarJogador(Jogador *jogador, int teclaEsquerda, int teclaDireita, int
     if ( jogador->pos.y + jogador->dim.y > GetScreenHeight() ) {
         jogador->pos.y = GetScreenHeight() - jogador->dim.y;
     }
-    
+
 }
