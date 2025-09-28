@@ -437,9 +437,9 @@ void draw_menu( void ){
 
     // Textos secundarios
     DrawRectangle( (GetScreenWidth() / 2 - 175), (GetScreenHeight() / 2 + 75), 370, 90, BLUE );
-    DrawText("Aperte Q para descartar o lixo", GetScreenWidth()/2 - 150 , 390, 20, WHITE);
+    DrawText("WASD para movimentacao", GetScreenWidth()/2 - 150 , 390, 20, WHITE);
     DrawText("Aperte E para pegar o lixo", GetScreenWidth()/2 - 150 , 410, 20, WHITE);
-    DrawText("WASD para movimentacao", GetScreenWidth()/2 - 150 , 430, 20, WHITE);
+    DrawText("Aperte Q para descartar o lixo", GetScreenWidth()/2 - 150 , 430, 20, WHITE);
 
     Rectangle fireSourceRec = { 0, 0, (float)fire.width, (float)fire.height};
     Rectangle fireDestRec = { 5, GetScreenHeight() / 2 - 110, 250, 190 };
