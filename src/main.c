@@ -357,7 +357,7 @@ void update( float delta ) {
             if( IsMouseButtonPressed(MOUSE_LEFT_BUTTON) ){
                 ESTADO = PARADO;
                 jogador.pontuacao = 0;
-                tempoRestante = 300;
+                tempoRestante = 300.0f;
                 jogador.tipoLixo = NENHUM;
                 for (int i = 0; i < MAX_LIXOS; i++) {
                     itensLixo[i].active = false;
@@ -372,7 +372,7 @@ void update( float delta ) {
             if( IsMouseButtonPressed(MOUSE_LEFT_BUTTON) ){
                 ESTADO = PARADO;
                 jogador.pontuacao = 0;
-                tempoRestante = 300;
+                tempoRestante = 300.0f;
                 jogador.tipoLixo = NENHUM;
                 for (int i = 0; i < MAX_LIXOS; i++) {
                     itensLixo[i].active = false;
