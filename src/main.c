@@ -3,7 +3,7 @@
  * @author Prof. Dr. David Buzatto
  * @brief Main function and logic for the game. Simplified template for game
  * development in C using Raylib (https://www.raylib.com/).
- * * @copyright Copyright (c) 2025
+ * @copyright Copyright (c) 2025
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,23 +20,23 @@
  *-------------------------------------------*/
 
 /*---------------------------------------------
- * Macros. 
+ * Macros.
  *-------------------------------------------*/
 
 /*--------------------------------------------
- * Constants. 
+ * Constants.
  *------------------------------------------*/
 const int PARADO = 0;
 const int RODANDO = 1;
 const int GAME_WIN = 2;
 const int GAME_LOSE = 3;
-int ESTADO = PARADO; 
+int ESTADO = PARADO;
 
 const int LIXO_WIDTH = 30;
 const int LIXO_HEIGHT = 35;
 
-const int LIXEIRA_WIDTH = 90;
-const int LIXEIRA_HEIGHT = 110;
+const int LIXEIRA_WIDTH = 85;
+const int LIXEIRA_HEIGHT = 105;
 
 /*---------------------------------------------
  * Custom types (enums, structs, unions, etc.)
@@ -55,13 +55,22 @@ typedef struct Jogador {
     Vector2 pos;
     Vector2 dim;
     Texture2D sprite;
+    // Campos para animação
+    int frameWidth;
+    int frameHeight;
+    int currentFrame;
+    int totalFrames;
+    float frameTimer;
+    float frameSpeed;
+    bool isMoving;
+    bool isFlipped; // Controla a direção do sprite
 } Jogador;
 
 typedef struct Lixo {
     Vector2 pos;
     TipoDoLixo type;
     Texture2D sprite;
-    bool active; // Checa se o lixo esta na tela 
+    bool active; // Checa se o lixo esta na tela
 } Lixo;
 
 typedef struct Lixeira {
@@ -81,7 +90,7 @@ Font tituloFont;
 Texture2D papelLixo;
 Texture2D vidroLixo;
 Texture2D plasticoLixo;
-Texture2D metalLixo; 
+Texture2D metalLixo;
 Texture2D frame;
 Texture2D hand;
 
@@ -100,13 +109,13 @@ Texture2D lixeiraPapel;
 Lixeira lixeiras [NUM_LIXEIRAS];
 
 /*---------------------------------------------
- * Function prototypes. 
+ * Function prototypes.
  *-------------------------------------------*/
 /**
  * @brief Reads user input and updates the state of the game.
  */
 void update( float delta );
-    
+
 /**
  * @brief Draws the state of the game.
  */
@@ -122,7 +131,7 @@ void AtualizarJogador(Jogador *jogador, int teclaEsquerda, int teclaDireita, int
  * @brief Game entry point.
  */
 int main( void ) {
-    
+
     // antialiasing
     SetConfigFlags( FLAG_MSAA_4X_HINT );
 
@@ -143,19 +152,29 @@ int main( void ) {
     vidroLixo = LoadTexture("resources/images/glassGarbage.png");
     plasticoLixo = LoadTexture("resources/images/plasticGarbage.png");
     metalLixo = LoadTexture("resources/images/metalGarbage.png");
-    jogador.sprite = LoadTexture("resources/images/player.png");
+    jogador.sprite = LoadTexture("resources/images/player_spritesheet.png");
     lixeiraPlastico = LoadTexture("resources/images/lixeira_plastico.png");
     lixeiraVidro = LoadTexture("resources/images/lixeira_vidro.png");
     lixeiraMetal = LoadTexture("resources/images/lixeira_metal.png");
     lixeiraPapel = LoadTexture("resources/images/lixeira_papel.png");
     frame = LoadTexture("resources/images/frame.png");
     hand = LoadTexture("resources/images/hand.png");
-    
+
     jogador.pos = (Vector2){ GetScreenWidth()/2- 40, GetScreenHeight()/2 - 60 };
-    jogador.dim = (Vector2){ 100, 100 }; //tamanho do mergulhador
-    jogador.vel = 200; // velocidade do mergulhador
+    jogador.dim = (Vector2){ 120, 120 }; //tamanho do mergulhador
+    jogador.vel = 190; // velocidade do mergulhador
     jogador.tipoLixo = NENHUM;
     jogador.pontuacao = 0;
+    // Inicialização dos campos de animação
+    jogador.frameWidth = 100;
+    jogador.frameHeight = 100;
+    jogador.currentFrame = 0;
+    jogador.totalFrames = 4;
+    jogador.frameTimer = 0;
+    jogador.frameSpeed = 0.15f;
+    jogador.isMoving = false;
+    jogador.isFlipped = false;
+
 
     spritesLixo[PLASTICO] = plasticoLixo;
     spritesLixo[VIDRO] = vidroLixo;
@@ -165,7 +184,7 @@ int main( void ) {
     //loop array lixo
     for (int i = 0; i < MAX_LIXOS; i++) {
        itensLixo[i].active = false;
-    } 
+    }
 
     float startY = GetScreenHeight() - LIXEIRA_HEIGHT - 20; // 20 pixels de margem do fundo
 
@@ -177,7 +196,7 @@ int main( void ) {
 
     // Configura a posição e tamanho de cada lixeira
     for (int i = 0; i < NUM_LIXEIRAS; i++) {
-        lixeiras[i].rect.x = 60 + i * (LIXEIRA_WIDTH + 100); // Posição X com espaçamento
+        lixeiras[i].rect.x = 70 + i * (LIXEIRA_WIDTH + 100); // Posição X com espaçamento
         lixeiras[i].rect.y = startY;
         lixeiras[i].rect.width = LIXEIRA_WIDTH;
         lixeiras[i].rect.height = LIXEIRA_HEIGHT;
@@ -215,7 +234,7 @@ int main( void ) {
 
 void update( float delta ) {
     if (ESTADO == PARADO) {
-        
+
         // Botao iniciar
         Rectangle iniciar = { 310, 267, 180, 50 };
         bool isCollision = CheckCollisionPointRec( GetMousePosition(), iniciar );
@@ -231,13 +250,13 @@ void update( float delta ) {
                 itensLixo[0].sprite = spritesLixo[tipoAleatorio];
             }
         }
-        
+
     } else if (ESTADO == RODANDO) {
 
-        // cronometro 
+        // cronometro
         if( tempoRestante > 0 ) {
             tempoRestante -= GetFrameTime();
-        } else if ( tempoRestante <= 0 && jogador.pontuacao < 3000 ) { // Sistema de derrota
+        } else if ( tempoRestante <= 0 && jogador.pontuacao < 2000 ) { // Sistema de derrota
             jogador.melhorPontuacao = jogador.pontuacao;
             tempoRestante = 0;
             ESTADO = GAME_LOSE;
@@ -245,6 +264,23 @@ void update( float delta ) {
 
         // movimentacao do jogador
         AtualizarJogador(&jogador, KEY_A, KEY_D, KEY_W, KEY_S, delta);
+
+        // Lógica de animação do sprite do jogador
+        if (IsKeyDown(KEY_A) || IsKeyDown(KEY_D) || IsKeyDown(KEY_W) || IsKeyDown(KEY_S)) {
+            jogador.isMoving = true;
+            jogador.frameTimer += GetFrameTime();
+            if (jogador.frameTimer >= jogador.frameSpeed) {
+                jogador.frameTimer = 0;
+                jogador.currentFrame++;
+                if (jogador.currentFrame >= jogador.totalFrames) {
+                    jogador.currentFrame = 0; // Reinicia a animação
+                }
+            }
+        } else {
+            jogador.isMoving = false;
+            jogador.currentFrame = 0; // Volta para a primeira frame quando o jogador para
+        }
+
 
         // Colisao do jogador
         Rectangle jogadorRec = { jogador.pos.x, jogador.pos.y, jogador.dim.x, jogador.dim.y };
@@ -255,7 +291,7 @@ void update( float delta ) {
                 if( itensLixo[i].active ){
                     Rectangle lixoRec = { itensLixo[i].pos.x, itensLixo[i].pos.y, LIXO_WIDTH, LIXO_HEIGHT };
                     if( CheckCollisionRecs(jogadorRec, lixoRec) ){
-                        jogador.tipoLixo = itensLixo[i].type;                    
+                        jogador.tipoLixo = itensLixo[i].type;
                         itensLixo[i].active = false;
                         break;
                     }
@@ -279,13 +315,13 @@ void update( float delta ) {
                     for(int i = 0; i < MAX_LIXOS; i++){
                         if(!itensLixo[i].active){
                             itensLixo[i].active = true;
-                            itensLixo[i].pos.x = GetRandomValue(30, GetScreenWidth() - 30); 
+                            itensLixo[i].pos.x = GetRandomValue(30, GetScreenWidth() - 30);
                             itensLixo[i].pos.y = GetRandomValue(60, GetScreenHeight() - 150);
-                            
-                            int tipoAleatorio = GetRandomValue(0, 3); 
+
+                            int tipoAleatorio = GetRandomValue(0, 3);
                             itensLixo[i].type = (TipoDoLixo)tipoAleatorio;
-                            itensLixo[i].sprite = spritesLixo[tipoAleatorio]; 
-                            
+                            itensLixo[i].sprite = spritesLixo[tipoAleatorio];
+
                             break;
                         }
                     }
@@ -297,7 +333,7 @@ void update( float delta ) {
         }
 
         // Sistema de vitoria
-        if ( jogador.pontuacao == 3000 ){
+        if ( jogador.pontuacao >= 2000 ){
             jogador.melhorPontuacao = jogador.pontuacao;
             ESTADO = GAME_WIN;
         }
@@ -310,11 +346,11 @@ void update( float delta ) {
             if( IsMouseButtonPressed(MOUSE_LEFT_BUTTON) ){
                 ESTADO = PARADO;
                 jogador.pontuacao = 0;
-                tempoRestante = 300.0f;
+                tempoRestante = 300;
                 jogador.tipoLixo = NENHUM;
                 for (int i = 0; i < MAX_LIXOS; i++) {
                     itensLixo[i].active = false;
-                } 
+                }
             }
         }
     } else if (ESTADO == GAME_LOSE){
@@ -325,11 +361,11 @@ void update( float delta ) {
             if( IsMouseButtonPressed(MOUSE_LEFT_BUTTON) ){
                 ESTADO = PARADO;
                 jogador.pontuacao = 0;
-                tempoRestante = 300.0f;
+                tempoRestante = 300;
                 jogador.tipoLixo = NENHUM;
                 for (int i = 0; i < MAX_LIXOS; i++) {
                     itensLixo[i].active = false;
-                } 
+                }
             }
         }
     }
@@ -354,16 +390,16 @@ void draw( void ) {
 
 void draw_menu( void ){
     // Fundo
-    Rectangle sourceRec = { 0.0f, 0.0f, (float)background.width, (float)background.height };
-    Rectangle destRec = { 0.0f, 0.0f, (float)GetScreenWidth(), (float)GetScreenHeight() };
-    Vector2 origin = { 0.0f, 0.0f };
+    Rectangle sourceRec = { 0, 0, (float)background.width, (float)background.height };
+    Rectangle destRec = { 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() };
+    Vector2 origin = { 0, 0 };
     Color transparentWhite = ColorAlpha(WHITE, 0.9f);
-    DrawTexturePro(background, sourceRec, destRec, origin, 0.0f, transparentWhite);
+    DrawTexturePro(background, sourceRec, destRec, origin, 0, transparentWhite);
 
     // Titulo e botao
     Vector2 tituloPos = { GetScreenWidth() / 2 - MeasureTextEx(tituloFont, "Ocean Guardian", 100, 1).x / 2, 100 };
     DrawTextEx(tituloFont, "Ocean Guardian", tituloPos, 100, 1, WHITE);
-    
+
     DrawRectangle(310, 267, 180, 50, BLUE);
     int iniciarTextWidth = MeasureText("INICIAR", 30);
     DrawText("INICIAR", GetScreenWidth()/2 - iniciarTextWidth/2, 280, 30, WHITE);
@@ -387,28 +423,28 @@ void draw_menu( void ){
 
 void draw_gameplay( void ){
     // background
-    Rectangle sourceRecBackground = { 0.0f, 0.0f, (float)background.width, (float)background.height };
-    Rectangle destRecBackground = { 0.0f, 0.0f, (float)GetScreenWidth(), (float)GetScreenHeight() };
-    Vector2 originBackground = { 0.0f, 0.0f };
-    DrawTexturePro(background, sourceRecBackground, destRecBackground, originBackground, 0.0f, WHITE);
+    Rectangle sourceRecBackground = { 0, 0, (float)background.width, (float)background.height };
+    Rectangle destRecBackground = { 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() };
+    Vector2 originBackground = { 0, 0 };
+    DrawTexturePro(background, sourceRecBackground, destRecBackground, originBackground, 0, WHITE);
 
     // desenho das lixeiras
     for (int i = 0; i < NUM_LIXEIRAS; i++) {
-        Rectangle source = { 0.0f, 0.0f, (float)lixeiras[i].sprite.width, (float)lixeiras[i].sprite.height };
-        DrawTexturePro(lixeiras[i].sprite, source, lixeiras[i].rect, (Vector2){0,0}, 0.0f, WHITE);
+        Rectangle source = { 0, 0, (float)lixeiras[i].sprite.width, (float)lixeiras[i].sprite.height };
+        DrawTexturePro(lixeiras[i].sprite, source, lixeiras[i].rect, (Vector2){0,0}, 0, WHITE);
     }
-    
+
     // geracao do lixo na tela
     for (int i = 0; i < MAX_LIXOS; i++) {
         if (itensLixo[i].active) {
-            Rectangle source = {0.0f, 0.0f, (float)itensLixo[i].sprite.width,
+            Rectangle source = {0, 0, (float)itensLixo[i].sprite.width,
             (float)itensLixo[i].sprite.height };
 
             Rectangle dest = {itensLixo[i].pos.x, itensLixo[i].pos.y, LIXO_WIDTH, LIXO_HEIGHT};
 
-            Vector2 origin = {0.0f, 0.0f};
+            Vector2 origin = {0, 0};
 
-            DrawTexturePro(itensLixo[i].sprite, source, dest, origin, 0.0f, WHITE);
+            DrawTexturePro(itensLixo[i].sprite, source, dest, origin, 0, WHITE);
         }
     }
 
@@ -422,8 +458,8 @@ void draw_gameplay( void ){
 
     // item na mao (frame)
     Rectangle frameSourceRec = { 0, 0, (float)frame.width, (float)frame.height };
-    Rectangle frameDestRec = { GetScreenWidth() - 75, 10, 55, 55 }; 
-    Vector2 frameOrigin = { 0, 0 };   
+    Rectangle frameDestRec = { GetScreenWidth() - 75, 10, 55, 55 };
+    Vector2 frameOrigin = { 0, 0 };
     DrawTexturePro(frame, frameSourceRec, frameDestRec, frameOrigin, 0, WHITE);
 
     // item na mao (lixo)
@@ -435,25 +471,30 @@ void draw_gameplay( void ){
         DrawTexturePro(itemSprite, itemSourceRec, itemDestRec, itemOrigin, 0, WHITE);
     } else {
         Rectangle handSourceRec = { 0, 0, (float)hand.width, (float)hand.height };
-        Rectangle handDestRec = { GetScreenWidth() - 63, 23, 32, 27 }; 
-        Vector2 handOrigin = { 0, 0 };   
+        Rectangle handDestRec = { GetScreenWidth() - 63, 23, 32, 27 };
+        Vector2 handOrigin = { 0, 0 };
         DrawTexturePro(hand, handSourceRec, handDestRec, handOrigin, 0, WHITE);
     }
 
     // mergulhador(player)
-    Rectangle source = { 0.0f, 0.0f, (float)jogador.sprite.width, (float)jogador.sprite.height };
+    float frameWidth = (float)jogador.frameWidth;
+    if (jogador.isFlipped) {
+        frameWidth = -frameWidth; // vira o sprite horizontalmente
+    }
+    // source desenha a parte da imagem do arquivo spritesheet
+    Rectangle source = { (float)jogador.currentFrame * jogador.frameWidth, 0, frameWidth, (float)jogador.frameHeight };
     Rectangle dest = { jogador.pos.x, jogador.pos.y, jogador.dim.x, jogador.dim.y };
-    Vector2 origin = { 0.0f, 0.0f };
-    DrawTexturePro(jogador.sprite, source, dest, origin, 0.0f, WHITE);
+    Vector2 origin = { 0, 0 };
+    DrawTexturePro(jogador.sprite, source, dest, origin, 0, WHITE);
 }
 
 void draw_win( void ){
     // Fundo
-    Rectangle sourceRec = { 0.0f, 0.0f, (float)background.width, (float)background.height };
-    Rectangle destRec = { 0.0f, 0.0f, (float)GetScreenWidth(), (float)GetScreenHeight() };
-    Vector2 origin = { 0.0f, 0.0f };
+    Rectangle sourceRec = { 0, 0, (float)background.width, (float)background.height };
+    Rectangle destRec = { 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() };
+    Vector2 origin = { 0, 0 };
     Color transparentWhite = ColorAlpha(WHITE, 0.9f);
-    DrawTexturePro(background, sourceRec, destRec, origin, 0.0f, transparentWhite);
+    DrawTexturePro(background, sourceRec, destRec, origin, 0, transparentWhite);
 
     // Mensagem de win e botao
     Vector2 tituloPos = { GetScreenWidth() / 2 - MeasureTextEx(tituloFont, "Vitória", 100, 1).x / 2, 100 };
@@ -470,11 +511,11 @@ void draw_win( void ){
 
 void draw_lose( void ){
     // Fundo
-    Rectangle sourceRec = { 0.0f, 0.0f, (float)background.width, (float)background.height };
-    Rectangle destRec = { 0.0f, 0.0f, (float)GetScreenWidth(), (float)GetScreenHeight() };
-    Vector2 origin = { 0.0f, 0.0f };
+    Rectangle sourceRec = { 0, 0, (float)background.width, (float)background.height };
+    Rectangle destRec = { 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() };
+    Vector2 origin = { 0, 0 };
     Color transparentWhite = ColorAlpha(WHITE, 0.9f);
-    DrawTexturePro(background, sourceRec, destRec, origin, 0.0f, transparentWhite);
+    DrawTexturePro(background, sourceRec, destRec, origin, 0, transparentWhite);
 
     // Mensagem de win e botao
     Vector2 tituloPos = { GetScreenWidth() / 2 - MeasureTextEx(tituloFont, "Vitória", 100, 1).x / 2 - 30, 100 };
@@ -495,11 +536,13 @@ void AtualizarJogador(Jogador *jogador, int teclaEsquerda, int teclaDireita, int
     // Movimento do jogador
     if ( IsKeyDown( teclaEsquerda ) ) {
         jogador->pos.x -= jogador->vel * delta;
+        jogador->isFlipped = false; // Vira para a esquerda (padrão)
     }
 
     if ( IsKeyDown( teclaDireita ) ) {
         jogador->pos.x += jogador->vel * delta;
-    } 
+        jogador->isFlipped = true;  // Vira para a direita
+    }
 
     if (IsKeyDown(teclaCima)) {
         jogador->pos.y -= jogador->vel * delta;
@@ -507,14 +550,14 @@ void AtualizarJogador(Jogador *jogador, int teclaEsquerda, int teclaDireita, int
 
     if (IsKeyDown(teclaBaixo)) {
         jogador->pos.y += jogador->vel * delta;
-    } 
+    }
 
     // Verificação de limites para manter o jogador na tela
     // Limite esquerdo
     if ( jogador->pos.x < 0 ) {
         jogador->pos.x = 0;
     }
-    
+
     // Limite direito
     if ( jogador->pos.x + jogador->dim.x > GetScreenWidth() ) {
         jogador->pos.x = GetScreenWidth() - jogador->dim.x;
@@ -524,9 +567,10 @@ void AtualizarJogador(Jogador *jogador, int teclaEsquerda, int teclaDireita, int
     if ( jogador->pos.y < 0 ) {
         jogador->pos.y = 0;
     }
-    
+
     // Limite inferior
     if ( jogador->pos.y + jogador->dim.y > GetScreenHeight() ) {
         jogador->pos.y = GetScreenHeight() - jogador->dim.y;
     }
+    
 }
