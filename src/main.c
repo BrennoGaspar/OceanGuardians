@@ -349,6 +349,7 @@ void update( float delta ) {
 
         // Sistema de vitoria
         if ( jogador.pontuacao >= 2000 ){
+            jogador.pontuacao = 2000;
             if( jogador.melhorPontuacao < jogador.pontuacao ){
                 jogador.melhorPontuacao = jogador.pontuacao;
             }
