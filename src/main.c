@@ -97,8 +97,11 @@ Texture2D plasticoLixo;
 Texture2D metalLixo;
 Texture2D frame;
 Texture2D hand;
+Music musica;
+Sound somDescarteCerto;
+Sound somDescarteErrado;
 
-float tempoRestante = 300.0f; // tempo em segundos
+float tempoRestante = 180.0f; // tempo em segundos
 
 #define MAX_LIXOS 1 // O maximo de lixos que podem aparecer na tela
 #define NUM_LIXEIRAS 4
@@ -143,7 +146,7 @@ int main( void ) {
     InitWindow( 800, 600, "Ocean Guardians - O Jogo" );
 
     // init audio device only if your game uses sounds
-    //InitAudioDevice();
+    InitAudioDevice();
 
     // FPS: frames per second
     SetTargetFPS( 60 );
@@ -167,6 +170,15 @@ int main( void ) {
     lixeiraPapel = LoadTexture("resources/images/lixeira_papel.png");
     frame = LoadTexture("resources/images/frame.png");
     hand = LoadTexture("resources/images/hand.png");
+
+    musica = LoadMusicStream("resources/sounds/fundo.wav");
+    somDescarteCerto = LoadSound("resources/sounds/acerto.mp3");
+    somDescarteErrado = LoadSound("resources/sounds/erro.wav");
+    // configura o volume da musica de fundo
+    SetMusicVolume(musica, 0.2f);
+
+    // Inicia a reprodução da música de fundo
+    PlayMusicStream(musica);
 
     jogador.pos = (Vector2){ GetScreenWidth()/2- 40, GetScreenHeight()/2 - 60 };
     jogador.dim = (Vector2){ 120, 120 }; //tamanho do mergulhador
@@ -213,6 +225,7 @@ int main( void ) {
     // game loop
     while ( !WindowShouldClose() ) {
         update( GetFrameTime() );
+        UpdateMusicStream(musica);
         draw();
     }
 
@@ -235,9 +248,14 @@ int main( void ) {
     UnloadTexture(frame);
     UnloadTexture(hand);
 
+    UnloadMusicStream(musica);
+    UnloadSound(somDescarteCerto);
+    UnloadSound(somDescarteErrado);
+
     //Liberação da textura do mergulhador
     UnloadTexture(jogador.sprite);
     // close audio device only if your game uses sounds
+    CloseAudioDevice();
     CloseWindow();
 
     return 0;
@@ -321,9 +339,11 @@ void update( float delta ) {
                 if (CheckCollisionRecs(jogadorRec, lixeiraRec)) {
                     if (jogador.tipoLixo == lixeiras[i].type) {
                         printf("Lixo descartado corretamente na lixeira %d!\n", i);
+                        PlaySound(somDescarteCerto);
                         jogador.pontuacao += 100;
                     } else {
                         printf("Tipo de lixo incorreto. Tente outra lixeira.\n");
+                        PlaySound(somDescarteErrado);
                         jogador.pontuacao -= 50;
                     }
                     // Spawn do lixo
@@ -375,7 +395,7 @@ void update( float delta ) {
             if( IsMouseButtonPressed(MOUSE_LEFT_BUTTON) ){
                 ESTADO = PARADO;
                 jogador.pontuacao = 0;
-                tempoRestante = 300.0f;
+                tempoRestante = 180.0f;
                 jogador.tipoLixo = NENHUM;
                 for (int i = 0; i < MAX_LIXOS; i++) {
                     itensLixo[i].active = false;
@@ -390,7 +410,7 @@ void update( float delta ) {
             if( IsMouseButtonPressed(MOUSE_LEFT_BUTTON) ){
                 ESTADO = PARADO;
                 jogador.pontuacao = 0;
-                tempoRestante = 300.0f;
+                tempoRestante = 180.0f;
                 jogador.tipoLixo = NENHUM;
                 for (int i = 0; i < MAX_LIXOS; i++) {
                     itensLixo[i].active = false;
